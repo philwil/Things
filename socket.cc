@@ -106,7 +106,7 @@ int connectServer(int port, void *data)
     /* gethostbyname: get the server's DNS entry */
     serverh = gethostbyname((const char *)data);
     if (serverh == NULL) {
-      fprintf(stderr,"ERROR, no such host as %s\n", data);
+      fprintf(stderr,"ERROR, no such host as %s\n", (char *)data);
       exit(0);
     }
     
