@@ -1,0 +1,31 @@
+This is an attempt to create a method to find/describe/control things in an interconnected world.
+A simple example is a set of gpios on a small system.
+Take a url
+
+//my_new_pi/gpio_1/?value=1
+
+This will set the value of gpio_1 on my_new_pi to 1 !
+
+It would be nice to be able to set this up very simply.
+
+try this 
+//my_new_pi/?isa=system&ip_address=10.0.1.2&port=3456
+
+//my_new_pi/gpio_1/?isa=gpio&pin=2&dir=output&value=1
+
+
+
+
+Add to this some audio/video inputs and outputs and the Thing starts to have more interesting  personalities.
+
+I have been working on this sort of data structure for many years now.
+I also used to "NOT LIKE" C++.
+But, looking at more recent releases of C++ there are some good structures that are worth looking at.
+
+So, I am also using this to learn about C++.
+
+Very basic code for now. Just about to start a Thing server (that runs on my_new_pi) for example.
+
+
+
+
