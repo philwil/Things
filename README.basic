@@ -1,6 +1,12 @@
-This is an attempt to create a method to find/describe/control things in an interconnected world.
+Initial commants 1/28/2014
+  Phil Wilshire
+
+This is an attempt to create a method to find/describe/control things 
+in an interconnected world.
+
 A simple example is a set of gpios on a small system.
-Take a url
+
+Take a url style of format
 
 //my_new_pi/gpio_1/?value=1
 
