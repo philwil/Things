@@ -25,10 +25,13 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
+#include <unistd.h>
 
 using namespace std;
 
 #include "Things.h"
+#include "socket.h"
+
 
 int anyCommand (int fd, string &stuff, string &reply);
 int serv_receive(int fd, string &msg, string &reply);
@@ -95,9 +98,9 @@ int createNewThing(string name)
 }
 
 
-int ListThings(map<string, Thing*> &things, string dummy)
+int ListThings(tMap &things, string dummy)
 {
-  map<string, Thing*>::iterator iter;
+  tMap::iterator iter;
   for ( iter = things.begin() ; iter != things.end(); ++iter )
   {
     if (iter->second->isa.empty()) {
@@ -105,7 +108,7 @@ int ListThings(map<string, Thing*> &things, string dummy)
     } else {
       cout<<dummy<<iter->first<< " isa [" << (iter->second)->isa <<"]" <<endl;
     }
-    ListThings(iter->second->attrs, dummy + "   ");
+    ListThings(iter->second->Attrs, dummy + "   ");
   }
 
   return 0;
@@ -113,7 +116,7 @@ int ListThings(map<string, Thing*> &things, string dummy)
 
 int KillThings(void)
 {
-  map<string, Thing*>::iterator iter;
+  tMap::iterator iter;
   for ( iter = Things.begin() ; iter != Things.end(); ++iter )
   {
     cout << "killing ["<< (iter->second)->name <<"]" << endl;
@@ -146,7 +149,7 @@ int setAttrs(Thing &thing, string &reply, string stuff)
       vector <string> subs;
       Split(subs, *it, "=", true);
       
-      if (!thing.attrs[subs[0]]) 
+      if (!thing.Attrs[subs[0]]) 
 	{
 	  cout << " No attribute ["<<subs[0]<<"] in ["<< thing.name <<"]\n";
 	  //thing.attrs[subs[0]]=new Thing(subs[0]);
@@ -155,7 +158,7 @@ int setAttrs(Thing &thing, string &reply, string stuff)
       else
 	{
 	  cout << " Set value of  ["<<subs[0]<<"] in ["<< thing.name <<"] to value ["<< subs[1]<<"]\n";
-	  (thing.attrs[subs[0]])->value = subs[1];
+	  (thing.Attrs[subs[0]])->value = subs[1];
 	  if (s1) 
 	    {
 	      s1 = false;
@@ -175,10 +178,10 @@ int setAttrs(Thing &thing, string &reply, string stuff)
 
 int getAttrs(Thing &thing, string &reply, string stuff)
 {
-  map <string, Thing *>::iterator it;
+  tMap::iterator it;
   reply="{ ";
   bool s1 = true;
-  for (it = thing.attrs.begin(); it != thing.attrs.end(); ++it) 
+  for (it = thing.Attrs.begin(); it != thing.Attrs.end(); ++it) 
     {
       if((*it).second) {
 	cout <<" getting ["<<(*it).first<<"]\n";
@@ -239,16 +242,16 @@ int setNodeFunction(Thing &thing, string &reply, string name, string stuff)
   }
 
   if (thing.fd == 0) {
-    if(!thing.attrs["ip_address"]) {
+    if(!thing.Attrs["ip_address"]) {
       cout<< " no ip_address\n"<<endl;
       return -1;
     }
-    if(!thing.attrs["node"]) {
+    if(!thing.Attrs["node"]) {
       cout<< " no node\n"<<endl;
       return -1;
     }
 
-    thing.fd = sock_connect(thing.attrs["ip_address"]->value, thing.attrs["node"]->value, 2000);
+    thing.fd = sock_connect(thing.Attrs["ip_address"]->value, thing.Attrs["node"]->value, 2000);
   }
 
   if (thing.fd > 0) {
@@ -284,16 +287,16 @@ int getNodeFunction(Thing &thing, string &reply, string name, string stuff)
   }
 
   if (thing.fd == 0) {
-    if(!thing.attrs["ip_address"]) {
+    if(!thing.Attrs["ip_address"]) {
       cout<< " no ip_address\n"<<endl;
       return -1;
     }
-    if(!thing.attrs["node"]) {
+    if(!thing.Attrs["node"]) {
       cout<< " no node\n"<<endl;
       return -1;
     }
 
-    thing.fd = sock_connect(thing.attrs["ip_address"]->value, thing.attrs["node"]->value, 2000);
+    thing.fd = sock_connect(thing.Attrs["ip_address"]->value, thing.Attrs["node"]->value, 2000);
   }
 
   if (thing.fd > 0) {
@@ -347,8 +350,8 @@ int helpFunction (Thing &thing, string name, string stuff)
 
 int runFunction(Thing &thing, string &reply, string name, string stuff)
 {
-  map<string, Thing*> myFunctions;
-  myFunctions = thing.myFunctions;
+  tMap Actions;
+  Actions = thing.Actions;
 
   if (thing.isa.empty())
     {
@@ -357,10 +360,10 @@ int runFunction(Thing &thing, string &reply, string name, string stuff)
   else 
     {
       cout<<"Thing ["<< thing.name<<"]" <<" isa is <" << thing.isa<<">.. NOT empty\n";
-      myFunctions = thing.isaThing->myFunctions;
+      Actions = thing.isaThing->Actions;
     }
 
-  if ( !myFunctions[name] ) 
+  if ( !Actions[name] ) 
     {
       cout << " no function [" << name << "] in Thing called [" 
 	   << thing.name << "]"<< endl;
@@ -369,9 +372,9 @@ int runFunction(Thing &thing, string &reply, string name, string stuff)
     {
       cout << " run function [" << name << "] in Thing called [" << thing.name  
 	   << "] with [" << stuff<<"]"<< endl;
-      int (*runFunction) (Thing &thing, string &reply, string name, string stuff) =
-	(int (*) (Thing &, string &, string, string))myFunctions[name]->stuff;
-      runFunction(thing, reply, name, stuff);
+      int (*runAction) (Thing &thing, string &reply, string name, string stuff) =
+	(int (*) (Thing &, string &, string, string))Actions[name]->stuff;
+      if(runAction) runAction(thing, reply, name, stuff);
     }
 
 
@@ -406,8 +409,8 @@ int isa(string name, string Isa)
   //  Now copy all the isa attrs to attrs
   // for thngs in  
   //createNewThing("dir");
-  map<string, Thing*>::iterator iter;
-  for (iter = isa->attrs.begin(); iter != isa->attrs.end(); ++iter )
+  tMap::iterator iter;
+  for (iter = isa->Attrs.begin(); iter != isa->Attrs.end(); ++iter )
   {
     cout<<" TODO Copying ["<<iter->first<<"]" <<endl;
     me->createNewThing(iter->first);
@@ -476,23 +479,23 @@ int anyCommand (int fd, string &cmd, string &reply)
 	   <<"] isa ["<< targ->isa<<"]" << " with data[" << nstr <<"]" << endl;
     }
     
-    if(!targ->myFunctions[stuff[0]]) 
+    if(!targ->Actions[stuff[0]]) 
       {
-	cout << " no  command ["<< stuff[0] << "] in myFunctions ON["<< targ->name<<"]" << endl;
+	cout << " no  command ["<< stuff[0] << "] in Actions ON["<< targ->name<<"]" << endl;
       }
     else 
       {
-	cout << " YES  command ["<< stuff[0] << "] in myFunctions" << endl;
+	cout << " YES  command ["<< stuff[0] << "] in Actions" << endl;
 	runFunction(*targ, reply, stuff[0], nstr);
       }
-    if(!isa->myFunctions[stuff[0]]) 
+    if(!isa->Actions[stuff[0]]) 
       {
-	cout << " no  ISA command ["<< stuff[0] << "] in myFunctions ON["<< isa->name<<"]" << endl;
+	cout << " no  ISA command ["<< stuff[0] << "] in Actions ON["<< isa->name<<"]" << endl;
       }
     else 
       {
 	
-	cout << " YES  command ["<< stuff[0] << "] in ISA myFunctions" << endl;
+	cout << " YES  command ["<< stuff[0] << "] in ISA Actions" << endl;
 	runFunction(*targ, reply, stuff[0], nstr);
 	
       }
@@ -520,23 +523,23 @@ int anyCommand (int fd, string &cmd, string &reply)
 	   <<"] isa ["<< targ->isa<<"]" << " with data[" << nstr <<"]" << endl;
     }
     
-    if(!targ->myFunctions[stuff[0]]) 
+    if(!targ->Actions[stuff[0]]) 
       {
-	cout << " no  command ["<< stuff[0] << "] in myFunctions ON["<< targ->name<<"]" << endl;
+	cout << " no  command ["<< stuff[0] << "] in Actions ON["<< targ->name<<"]" << endl;
       }
     else 
       {
-	cout << " YES  command ["<< stuff[0] << "] in myFunctions" << endl;
+	cout << " YES  command ["<< stuff[0] << "] in Actions" << endl;
 	runFunction(*targ, reply, stuff[0], nstr);
       }
-    if(!isa->myFunctions[stuff[0]]) 
+    if(!isa->Actions[stuff[0]]) 
       {
-	cout << " no  ISA command ["<< stuff[0] << "] in myFunctions ON["<< isa->name<<"]" << endl;
+	cout << " no  ISA command ["<< stuff[0] << "] in Actions ON["<< isa->name<<"]" << endl;
       }
     else 
       {
 	
-	cout << " YES  command ["<< stuff[0] << "] in ISA myFunctions" << endl;
+	cout << " YES  command ["<< stuff[0] << "] in ISA Actions" << endl;
 	runFunction(*targ, reply, stuff[0], nstr);
 	
       }
@@ -574,12 +577,12 @@ int setValue(map<string, Thing*>&things, string name, string object, string valu
       cout << " SetValue No thing ["<<name<<"] found \n";
       return -1;
     }
-  if(!things[name]->attrs[object])
+  if(!things[name]->Attrs[object])
     {
       cout << " SetValue thing "<<name<<" no object " << object<<"] found \n";
       return -1;
     } 
-  things[name]->attrs[object]->value = value;
+  things[name]->Attrs[object]->value = value;
   
   return 0;
 }
@@ -610,10 +613,9 @@ int doCommand(string cmd)
  return 0;
 }
 
-int main(int argc, char *argv[])
+
+int runTest(void)
 {
-
-
   createNewThing(Things,"sysfoo");
 
   createNewThing(Commands,"set");
@@ -647,12 +649,12 @@ int main(int argc, char *argv[])
   Things["connection"]->createNewThing("node","3456");
 
 
-  Things["gpio"]->addFunction("set", (void*)setGpioFunction);
-  Things["gpio"]->addFunction("get", (void*)getGpioFunction);
+  Things["gpio"]->addAction("set", (void*)setGpioFunction);
+  Things["gpio"]->addAction("get", (void*)getGpioFunction);
 
   // this will connect with the selected node ans send the remainder of th command there
-  Things["connection"]->addFunction("set", (void*)setNodeFunction);
-  Things["connection"]->addFunction("get", (void*)getNodeFunction);
+  Things["connection"]->addAction("set", (void*)setNodeFunction);
+  Things["connection"]->addAction("get", (void*)getNodeFunction);
 
  
   // gpio_1 isa gpio
@@ -719,8 +721,61 @@ int main(int argc, char *argv[])
 
     cout << "Press ENTER to quit." << std::flush;
     cin.ignore( numeric_limits <streamsize> ::max(), '\n' );
-    KillThings();
-
     return 0;
+}
+
+
+
+
+// create a thread to process a client
+void *inputThread(void *data)
+{
+  sClient *sc = (sClient*)data;
+
+  int rc=1;
+  char buffer[2048];
+  cout << " Input  thread  created:" << "\n";
+
+  while (rc >0) {
+    rc = RecvClient(sc->sock, buffer, sizeof buffer);
+    if ( rc > 0 ) {
+      rc = SendClient(sc->sock, (string)buffer);
+    }
+  }
+  cout <<"client closed \n";
+  close(sc->sock);  
+  return NULL;
+}
+
+
+
+// create a thread to process a client
+void input_client(int sock, void *data, struct sockaddr_in *client)
+{
+   int rc;
+   sClient *sC = new sClient(sock);
+   sC->client =  client;
+   rc = pthread_create(&sC->thr, NULL, inputThread, (void *)sC);
+   //Clients.push_back(j);
+}
+
+int main(int argc, char *argv[])
+{
+
+  if (( argc == 1 ) || ((string)argv[1] == "test"))
+    {
+      runTest();
+    }
+
+  if ((string)argv[1] == "server")
+    {
+      int port = 2345;
+      cout <<" Running server on port ["<<port<<"]\n";
+      socketServer(port, input_client, (void *)NULL);
+    }
+
+  KillThings();
+  
+  return 0;
 }
 

@@ -10,6 +10,10 @@
 #include <vector>
 #include <string>
 
+class Thing;
+
+typedef map<string, Thing*> tMap;
+
 class Thing
 {
 public:
@@ -36,8 +40,8 @@ public:
   
   ~Thing() {
     cout<<"Destructor of" << this <<endl;
-    map<string, Thing*>::iterator iter;
-    for ( iter = attrs.begin() ; iter != attrs.end(); ++iter )
+    tMap::iterator iter;
+    for ( iter = Attrs.begin() ; iter != Attrs.end(); ++iter )
       {
 	delete iter->second;
       }
@@ -52,11 +56,11 @@ public:
   int createNewThing(string name, string isa);
 
   // give me something on some other list
-  int createNewThing(map<string, Thing*> &things, string name);
-  int createNewThing(map<string, Thing*> &things, string name, string value);
+  int createNewThing(tMap &things, string name);
+  int createNewThing(tMap &things, string name, string value);
 
   // add a function by name 
-  int addFunction(string name, void *stuff);
+  int addAction(string name, void *stuff);
 
   // show a list of things connected with me
   int showList();
@@ -79,10 +83,11 @@ public:
   string isa;
   Thing *isaThing;
   // a list of things I have
-  map<string, Thing*> attrs;
-  map<string, Thing*> myFunctions;
+  tMap Attrs;
+  tMap Actions;
 
   vector<Thing *> myList;
 };
+
 
 #endif

@@ -1,8 +1,40 @@
-// things.cc lets see how this worksout
-// solve the isa problem
-// gpio_i isa gpio
-// it must deep copy all the stuff that gpio uses
-// update gpio and all gpios get the update.
+//
+// copyright 2014
+//    Phil Wilshire <sysdcs@gmail.com>
+// Released under the GPL V2
+//
+// Things have attiibutes
+//   These can be set or queried by 
+
+//  simple urls
+//    /some_io/some_gpio?value
+//    /some_io/some_gpio?value=1
+//
+// we'll allow attributes to be set up on an adhoc basis.
+// If a thing has one or more isa features then the reading / writing the attributes 
+// will have a function associated with it
+//   the isa will cause the thing to join a class of things
+//
+//     /some_io/some_gpio?isa=gpio
+//
+//   If nothing else, in this case, mything will have an attribute called some_gpio
+//   this means we can collect things together under some_io.
+//
+// A thing can be a connection or simply a collection.
+//   Lets look at a connection
+//     /my_new_pi can define a connection or a system
+//    
+//      /my_new_pi?isa=connection?ip_address=10.0.30.110&node=3456
+//
+// the command  /my_new_pi?action=run 
+//   will actually start the /my_new_pi server
+//   other systems can talk to it 
+//   for example /my_desktop can talk to it
+//       /my_new_pi/some_io/some_gpio?value
+//       /my_new_pi/some_io/some_gpio?value=1
+//
+// Messy code at the moment but well get it worked oput.
+// 
 //
 
 #include <iostream>
@@ -20,7 +52,6 @@ using namespace std;
 #include "Things.h"
 
 
-
 int Thing::showList()
 {
 
@@ -31,16 +62,20 @@ int Thing::showList()
 }
 
 
+// list my attributtes
+//  /some_gpio?action=list_attrs (TODO)
+
 int Thing::ListAttrs()
 {
   map<string, Thing*>::iterator iter;
-  for ( iter = attrs.begin() ; iter != attrs.end(); ++iter )
+  for ( iter = Attrs.begin() ; iter != Attrs.end(); ++iter )
     {
       cout<<iter->first<<endl;
     }
-  
   return 0;
 }
+
+// split a string by delimiters
 void Thing::Split(vector<string>& lst, const string& input, const string& separators, bool remove_empty)
 {
     std::ostringstream word;
@@ -58,14 +93,15 @@ void Thing::Split(vector<string>& lst, const string& input, const string& separa
     if (!word.str().empty() || !remove_empty)
         lst.push_back(word.str());
 }
- 
-int Thing::createNewThing(map<string, Thing*> &things, string name)
+
+// create a new thing in a Thing map 
+int Thing::createNewThing(tMap &things, string name)
 {
+  // warning this will create th thing in tMap
   if (!things[name]) 
     {
       things[name]= new Thing;
       cout <<"new Thing [" << name <<"] created" <<"\n";
-      
     }
   else
     {
@@ -74,7 +110,8 @@ int Thing::createNewThing(map<string, Thing*> &things, string name)
   return 0;
 }
 
-int Thing::createNewThing(map<string, Thing*> &things, string name, string value)
+
+int Thing::createNewThing(tMap &things, string name, string value)
 {
   createNewThing(things,name);
   things[name]->value = value;
@@ -84,22 +121,22 @@ int Thing::createNewThing(map<string, Thing*> &things, string name, string value
 
 int Thing::createNewThing(string name)
 {
-  return createNewThing(attrs, name);
+  return createNewThing(Attrs, name);
 }
 
 int Thing::createNewThing(string name, string isa)
 {
   cout << " New this isa .. Not yet set up"<<endl;
 
-  return createNewThing(attrs, name);
+  return createNewThing(Attrs, name);
 }
 
-int Thing::addFunction(string name, void *stuff)
+int Thing::addAction(string name, void *stuff)
 {
-  if (!myFunctions[name]) {
-    myFunctions[name]=new Thing;
+  if (!Actions[name]) {
+    Actions[name]=new Thing;
   }
-  myFunctions[name]->stuff = stuff;
+  Actions[name]->stuff = stuff;
 }
 
 
@@ -117,7 +154,7 @@ int Thing::setAttrs(string &reply, string stuff)
       vector <string> subs;
       Split(subs, *it, "=", true);
       
-      if (!attrs[subs[0]]) 
+      if (!Attrs[subs[0]]) 
 	{
 	  cout << " No attribute ["<<subs[0]<<"] in ["<< name <<"]\n";
 	  //thing.attrs[subs[0]]=new Thing(subs[0]);
@@ -126,7 +163,7 @@ int Thing::setAttrs(string &reply, string stuff)
       else
 	{
 	  cout << " Set value of  ["<<subs[0]<<"] in ["<< name <<"] to value ["<< subs[1]<<"]\n";
-	  (attrs[subs[0]])->value = subs[1];
+	  (Attrs[subs[0]])->value = subs[1];
 	  if (s1) 
 	    {
 	      s1 = false;
@@ -145,10 +182,10 @@ int Thing::setAttrs(string &reply, string stuff)
 
 int Thing::getAttrs(string &reply, string stuff)
 {
-    map <string, Thing *>::iterator it;
+    tMap::iterator it;
     reply="{ ";
     bool s1 = true;
-    for (it = attrs.begin(); it != attrs.end(); ++it) 
+    for (it = Attrs.begin(); it != Attrs.end(); ++it) 
     {
 	if((*it).second) 
 	{

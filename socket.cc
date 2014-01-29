@@ -72,8 +72,8 @@ int socketServer(int port, void (*HandleClient)(int sock, void *data, struct soc
 		&clientlen)) < 0) {
       Die("Failed to accept client connection");
     }
-    fprintf(stdout, "Client connected: %s\n",
-	    inet_ntoa(client->sin_addr));
+    //    fprintf(stdout, "Client connected: %s\n",
+    //	    inet_ntoa(client->sin_addr));
     /* hand over operation to the client call back */
     HandleClient(clientsock, data, client);
   }
