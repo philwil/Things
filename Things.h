@@ -21,7 +21,7 @@ public:
   Thing() {cout<<"Default Constructor of " << this <<endl;}
 
  Thing(string name):name(name), fd(0), isa("") {
-    cout<<"Name Constructor of " << this <<endl;
+    cout<<"Name Constructor of ["<<name<<"] @" << this <<endl;
   }
   
   Thing(const Thing & rd)
@@ -39,7 +39,7 @@ public:
   }
   
   ~Thing() {
-    cout<<"Destructor of" << this <<endl;
+    cout<<"Destructor of " << this <<endl;
     tMap::iterator iter;
     for ( iter = Attrs.begin() ; iter != Attrs.end(); ++iter )
       {
@@ -82,10 +82,13 @@ public:
   // what am i .. this can be blank
   string isa;
   Thing *isaThing;
+  Thing *parent;
+
   // a list of things I have
   tMap Attrs;
   tMap Actions;
-
+  tMap Kids;
+  
   vector<Thing *> myList;
 };
 

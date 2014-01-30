@@ -1,4 +1,4 @@
-// things.cc lets see how this worksout
+// things.cc lets see how this works out
 // solve the isa problem
 // gpio_i isa gpio
 // TODO move isa functions ??
@@ -114,12 +114,28 @@ int ListThings(tMap &things, string dummy)
   return 0;
 }
 
-int KillThings(void)
+int ListKids(tMap &things, string dummy)
 {
   tMap::iterator iter;
-  for ( iter = Things.begin() ; iter != Things.end(); ++iter )
+  for (iter=things.begin(); iter != things.end(); ++iter )
+  {
+    if (iter->second->isa.empty()) {
+      cout<<dummy<<iter->first<<endl;
+      ListKids((iter->second)->Kids, dummy + "   ");
+    }
+
+  }
+
+  return 0;
+}
+
+int KillThings(tMap &things)
+{
+  tMap::iterator iter;
+  for ( iter = things.begin() ; iter != things.end(); ++iter )
   {
     cout << "killing ["<< (iter->second)->name <<"]" << endl;
+    KillThings((iter->second)->Kids);
     delete iter->second;
   }
 
@@ -442,8 +458,52 @@ static void Split(vector<string>& lst, const string& input, const string& separa
 
 
 //
-// sends any  command via a node if needs be
+// handles a single command line   command via a node if needs be
 //
+// we find or make all the nodes / attributes
+//  sysfoo/mygpios/gpio_1/?dir=output&pin=1
+//
+int oneCommand (tMap &things, int fd, string &cmd, string &reply, Thing *parent)
+{
+  vector<string> target;
+  Thing *targ=NULL;
+  Thing *isa=NULL;
+  
+
+  cout << " running one command("<<cmd<<") [" 
+       << "] with [" << cmd<< "]"<< endl;
+  
+  // find the target
+  Split(target, cmd,"/", true);
+  //
+  // create the rest of the args
+  //
+
+  string nstr=cmd;
+  nstr.erase(0,target[0].size()+1);
+  cout << " target is [" << target[0] << "]"<<endl;
+    
+  if(!things[target[0]]) {
+    things[target[0]] = new Thing(target[0]);
+  }
+
+  targ = things[target[0]];
+  targ->parent=parent;
+
+  // at this point we add attributes if nstr starts with a '?'
+  // or reacll oneCommand with   nstr as an argument
+  if (nstr.size() == 0) return 0;
+
+  char ftype=nstr.at(0);
+
+  if (ftype != '?') {
+    cout << "found ["<<target[0]<<"] processing next command ["<<nstr<<"] \n";
+    return oneCommand(targ->Kids, fd, nstr, reply, targ);
+  }
+  cout << " Now processing attributes in [" << nstr << "]\n"; 
+  return 0;
+}
+
 int anyCommand (int fd, string &cmd, string &reply)
 {
   vector<string> target;
@@ -591,12 +651,23 @@ int doCommand(string cmd)
 {
   vector <string> myStrings;
   Split(myStrings, cmd," ", true);
-  
+  string reply;
   //anyCommand
+  // command is of a set or get type
+  // 
   vector <string>::iterator it;
   for (it = myStrings.begin(); it != myStrings.end(); ++it) 
-    {
+  {
       cout << *it << endl;
+  }
+
+  if (myStrings.size() == 1) 
+    {
+      int (*runCommand) (int, string&, string&) =
+	(int (*) (int, string&, string&))Commands["any"]->stuff;
+      runCommand(0, cmd, reply);
+
+      return 0;
     }
   if (Commands[myStrings.at(0)])
     {
@@ -618,12 +689,14 @@ int runTest(void)
 {
   createNewThing(Things,"sysfoo");
 
+  createNewThing(Commands,"any");
   createNewThing(Commands,"set");
   createNewThing(Commands,"get");
   createNewThing(Commands,"show");
   createNewThing(Commands,"help");
 
   // basic commands
+  //  Commands["any"]->stuff = (void*)oneCommand;
   Commands["set"]->stuff = (void*)anyCommand;
   Commands["get"]->stuff = (void*)anyCommand;
   Commands["show"]->stuff = (void*)showCommand;
@@ -714,15 +787,17 @@ int runTest(void)
     
     cout <<" string tests\n\n" ;
  
-    doCommand("set  sysfoo/?node=2345&dir=output&pin=3&descr=\"power_switch\"");
-    doCommand("set  sysfoo/gpio_1/?value=1&dir=output&pin=3&descr=\"power_switch\"");
-    doCommand("get  sysfoo/gpio_1");
+    doCommand("set  sysfoo/?node=2345&dir=output&pin=3&descr=power_switch");       // implied set
+    doCommand("set  sysfoo/gpio_1/?value=1&dir=output&pin=3&descr=power_switch");  // implied set
+    doCommand("get  sysfoo/gpio_1");                                               // implied get
+
 
 
     cout << "Press ENTER to quit." << std::flush;
     cin.ignore( numeric_limits <streamsize> ::max(), '\n' );
     return 0;
 }
+
 
 
 
@@ -774,7 +849,18 @@ int main(int argc, char *argv[])
       socketServer(port, input_client, (void *)NULL);
     }
 
-  KillThings();
+  if ((string)argv[1] == "one")
+    {
+      string reply;
+      string cmd="sysfoo/gpios/gpio_1/?dir=output&pin=1";
+      Things["sysfoo"] = new Thing("sysfoo");
+      oneCommand(Things, 1, cmd, reply, NULL);                // implied any command
+
+      cout << "Listing things  "<< Things["sysfoo"]->name<<endl;
+
+      ListKids(Things,"  ");
+    }
+  KillThings(Things);
   
   return 0;
 }
