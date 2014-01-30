@@ -39,7 +39,7 @@ public:
   }
   
   ~Thing() {
-    cout<<"Destructor of " << this <<endl;
+    cout<<"Destructor of " << this->name  <<endl;
     tMap::iterator iter;
     for ( iter = Attrs.begin() ; iter != Attrs.end(); ++iter )
       {
