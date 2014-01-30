@@ -456,41 +456,83 @@ static void Split(vector<string>& lst, const string& input, const string& separa
         lst.push_back(word.str());
 }
 
+// TODO put these inline
+int getJustThing(string &result, string &cmd)
+{
+    int rc = 0;
+    vector<string> target;
 
+    Split(target, cmd, "?", true);
+    rc = target.size();
+    if (rc > 0 )
+       result=target[0];
+    
+    return rc;
+}
+
+int getJustAttrs(string &result, string &cmd)
+{
+    int rc = 0;
+    vector<string> target;
+
+    Split(target, cmd, "?", true);
+    rc = target.size();
+    cout << " Attr target size " << rc << " cmd ["<< cmd <<"] \n";
+    if (rc > 1 )
+       result=target[1];
+    
+    return rc;
+}
 //
 // handles a single command line   command via a node if needs be
 //
 // we find or make all the nodes / attributes
 //  sysfoo/mygpios/gpio_1/?dir=output&pin=1
 //
-int oneCommand (tMap &things, int fd, string &cmd, string &reply, Thing *parent)
+int oneCommand (tMap &things,sClient &sclient, string &cmd, string &reply, Thing *parent)
 {
   vector<string> target;
   Thing *targ=NULL;
   Thing *isa=NULL;
-  
+  int rc;
 
   cout << " running one command("<<cmd<<") [" 
        << "] with [" << cmd<< "]"<< endl;
   
   // find the target
   Split(target, cmd,"/", true);
+
   //
   // create the rest of the args
   //
-
   string nstr=cmd;
+
   nstr.erase(0,target[0].size()+1);
-  cout << " target is [" << target[0] << "]"<<endl;
+  cout << " target is [" << target[0] << "] next string ["<<nstr<<"]"<< endl;
     
-  if(!things[target[0]]) {
-    things[target[0]] = new Thing(target[0]);
+  // target can be compound ie with attributes  //foo?name=myfoo&value=1/
+
+  string newthing ="";
+  rc = getJustThing(newthing, target[0]);
+  string newattrs="";
+  rc = getJustAttrs(newattrs, target[0]);
+
+  cout << " new thing is [" << newthing <<"] \n";
+  cout << " new attrs is [" << newattrs <<"] \n";
+  //return 0;
+
+  if(!things[newthing]) {
+    things[newthing] = new Thing(newthing);
   }
 
-  targ = things[target[0]];
+  targ = things[newthing];
   targ->parent=parent;
 
   // at this point we add attributes if nstr starts with a '?'
+  if (rc > 0 ) {
+    targ->addAttrs(reply, newattrs);
+    cout << " After addAttrs reply is [" << reply << "]\n";
+  }
   // or reacll oneCommand with   nstr as an argument
   if (nstr.size() == 0) return 0;
 
@@ -498,7 +540,7 @@ int oneCommand (tMap &things, int fd, string &cmd, string &reply, Thing *parent)
 
   if (ftype != '?') {
     cout << "found ["<<target[0]<<"] processing next command ["<<nstr<<"] \n";
-    return oneCommand(targ->Kids, fd, nstr, reply, targ);
+    return oneCommand(targ->Kids, sclient, nstr, reply, targ);
   }
   cout << " Now processing attributes in [" << nstr << "]\n"; 
   return 0;
@@ -851,12 +893,16 @@ int main(int argc, char *argv[])
 
   if ((string)argv[1] == "one")
     {
-      string reply;
-      string cmd="sysfoo/gpios/gpio_1/?dir=output&pin=1";
-      Things["sysfoo"] = new Thing("sysfoo");
-      oneCommand(Things, 1, cmd, reply, NULL);                // implied any command
+      sClient sclient(1); // dummy for now
 
-      cout << "Listing things  "<< Things["sysfoo"]->name<<endl;
+      string reply;
+      //string cmd="sysfoo/gpios/gpio_1/?dir=output&pin=1";
+      string cmd="gpio_1?dir=output&pin=1/foo?name=foo";
+      //Things["sysfoo"] = new Thing("sysfoo");
+      oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
+
+      cout << "Listing things  "<<" size " << Things.size()<<" "<< endl;
+      //cout << "Listing things  "<< Things["sysfoo"]->name<<" size " << Things.size()<<" "<< endl;
 
       ListKids(Things,"  ");
     }

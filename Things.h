@@ -20,7 +20,7 @@ public:
   
   Thing() {cout<<"Default Constructor of " << this <<endl;}
 
- Thing(string name):name(name), fd(0), isa("") {
+ Thing(string name):name(name), fd(0), isa("") , value("none") {
     cout<<"Name Constructor of ["<<name<<"] @" << this <<endl;
   }
   
@@ -65,6 +65,7 @@ public:
   // show a list of things connected with me
   int showList();
   void Split(vector<string>& lst, const string& input, const string& separators, bool remove_empty);
+  int addAttrs(string &reply, string stuff);
   int setAttrs(string &reply, string stuff);
   int getAttrs(string &reply, string stuff);
 
