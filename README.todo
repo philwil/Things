@@ -1,0 +1,34 @@
+1/30/2014
+working on 
+    ./things one
+
+*** parsing attributes
+
+***the connection is next
+
+***then discovery
+
+the one concept this a single one line url to set and get things
+
+For example 
+"sysfoo/?isa=connection&ip_addr=10.0.1.23&port=23456/gpios/gpio_1/?isa=gpio&dir=output&pin=1";
+
+Just parsing the attributes now
+
+connection tells us how to parse the rest of the line.
+
+In this case 
+
+/gpios/gpio_1/?isa=gpio&dir=output&pin=1
+is sent to sysfoo 
+
+
+After the initial setup the following will suffice
+
+    sysfoo/gpios/gpio_1/?value=1
+
+
+isa's define how to prcess the attributes
+   send to a connection
+   write to gpios
+etc
