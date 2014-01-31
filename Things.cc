@@ -179,58 +179,56 @@ int Thing::setAttrs(string &reply, string stuff)
   
   return 0;
 }
-
-
+//
+// Add / create attribures
+// stuff contains 
+// ?pin=1&dir=output&value=1
+// or
+//  ?pin&dir&value
+// watchout for isa=gpio
+// this has to be processed at the top level
+// 
 int Thing::addAttrs(string &reply, string stuff)
 {
-  vector <string> args;
-  vector <string>::iterator it;
-  Split(args, stuff, "?&", true);
-  reply="{ ";
-  bool s1 = true;
-  for (it = args.begin(); it != args.end(); ++it) 
+    vector <string> args;
+    vector <string>::iterator it;
+    Split(args, stuff, "?&", true);
+    reply="{ ";
+    bool s1 = true;
+    for (it = args.begin(); it != args.end(); ++it) 
     {
-      cout << *it << endl;
-      
-      vector <string> subs;
-      Split(subs, *it, "=", true);
-      
-      if (!Attrs[subs[0]]) 
+	cout << *it << endl;
+	
+	vector <string> subs;
+	Split(subs, *it, "=", true);
+	
+	if (!Attrs[subs[0]]) 
 	{
-	  cout << " Adding attribute ["<<subs[0]<<"] in ["<< name <<"]\n";
-	  Attrs[subs[0]]=new Thing(subs[0]);
-	  if (s1)
+	    cout << " Adding attribute ["<<subs[0]<<"] in ["<< name <<"]\n";
+	    Attrs[subs[0]]=new Thing(subs[0]);
+	    if (s1)
 	    {
-	      s1 = false;
+		s1 = false;
 	    } else {
-	    reply += ",";
-	  }
-
-	  if (subs.size() > 1){
+	      reply += ",";
+	    }
+	    (Attrs[subs[0]])->parent = this;
+	}
+	
+	if (subs.size() > 1)
+	{
 	    (Attrs[subs[0]])->value = subs[1];
 	    reply += "\"" +subs[0] + "\":\"" + subs[1] + "\"";
-	  } else {
-	    reply += "\"" +subs[0] + "\", ";
-	  }
+	} else {
+	  reply += "\"" +subs[0] + "\", ";
 	}
-      else
-	{
-	  cout << " Set value of  ["<<subs[0]<<"] in ["<< name <<"] to value ["<< subs[1]<<"]\n";
-	  (Attrs[subs[0]])->value = subs[1];
-	  if (s1) 
-	    {
-	      s1 = false;
-	    } else {
-	    reply += ",";
-	  }
-	  reply += "\"" +subs[0] + "\":\"" + subs[1] + "\"";
-	}	  
     }
-  reply += "}";
-  cout << " Add Attrs reply [" << reply <<"]\n";
-
-  return 0;
+    reply += "}";
+    cout << " Add Attrs reply [" << reply <<"]\n";
+    
+    return 0;
 }
+
 
 int Thing::getAttrs(string &reply, string stuff)
 {

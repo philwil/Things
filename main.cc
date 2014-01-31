@@ -30,7 +30,7 @@
 using namespace std;
 
 #include "Things.h"
-#include "socket.h"
+#include "Socket.h"
 
 
 int anyCommand (int fd, string &stuff, string &reply);
@@ -70,11 +70,11 @@ int serv_receive(int fd, string &msg, string &reply)
 }
 
 vector<string> myVector;
-map<string, Thing*> Things;
-map<string, Thing*> Commands;
+tMap Things;
+tMap Commands;
 
 
-int createNewThing(map<string, Thing*> &things, string name)
+int createNewThing(tMap &things, string name)
 {
   int rc = 0;
   if (!things[name]) 
@@ -104,11 +104,12 @@ int ListThings(tMap &things, string dummy)
   for ( iter = things.begin() ; iter != things.end(); ++iter )
   {
     if (iter->second->isa.empty()) {
-      cout<<dummy<<iter->first<<endl;
+      cout<<dummy<<iter->first<< ": [" <<(iter->second)->value<<"]"<<endl;
     } else {
       cout<<dummy<<iter->first<< " isa [" << (iter->second)->isa <<"]" <<endl;
     }
-    ListThings(iter->second->Attrs, dummy + "   ");
+    ListThings(iter->second->Attrs, dummy + "{attr}   ");
+    ListThings(iter->second->Kids, dummy + "   ");
   }
 
   return 0;
@@ -151,72 +152,6 @@ int setFunction (Thing &thing, string name, string stuff)
   return 0;
 }
 
-int setAttrs(Thing &thing, string &reply, string stuff)
-{
-  vector <string> args;
-  vector <string>::iterator it;
-  Split(args, stuff, "?&", true);
-  reply="{ ";
-  bool s1 = true;
-  for (it = args.begin(); it != args.end(); ++it) 
-    {
-      cout << *it << endl;
-      
-      vector <string> subs;
-      Split(subs, *it, "=", true);
-      
-      if (!thing.Attrs[subs[0]]) 
-	{
-	  cout << " No attribute ["<<subs[0]<<"] in ["<< thing.name <<"]\n";
-	  //thing.attrs[subs[0]]=new Thing(subs[0]);
-	  //(thing.attrs[subs[0]])->value = subs[1];
-	}
-      else
-	{
-	  cout << " Set value of  ["<<subs[0]<<"] in ["<< thing.name <<"] to value ["<< subs[1]<<"]\n";
-	  (thing.Attrs[subs[0]])->value = subs[1];
-	  if (s1) 
-	    {
-	      s1 = false;
-	      reply += "\"" +subs[0] + "\"=\"" + subs[1] + "\"";
-	    }
-	  else
-	    {
-	      reply += ",\"" +subs[0] + "\"=\"" + subs[1] + "\"";
-	    }
-	  
-	}	  
-    }
-  reply += "}";
-  
-  return 0;
-}
-
-int getAttrs(Thing &thing, string &reply, string stuff)
-{
-  tMap::iterator it;
-  reply="{ ";
-  bool s1 = true;
-  for (it = thing.Attrs.begin(); it != thing.Attrs.end(); ++it) 
-    {
-      if((*it).second) {
-	cout <<" getting ["<<(*it).first<<"]\n";
-	if (s1)
-	  {
-	    s1 = false;
-	    
-	    reply += "\"" +(*it).first + "\"=\"" + (*it).second->value + "\"";
-	  }
-	else
-	  {
-	    reply += ",\"" +(*it).first + "\"=\"" + (*it).second->value + "\"";
-	    
-	  }
-      }
-    }
-  reply+="}";
-  return 0;
-}
 
 // set gpio look for 
 // look for &?pin=, &?dir= &?value= 
@@ -228,7 +163,7 @@ int setGpioFunction (Thing &thing, string &reply, string name, string stuff)
   cout << " running set Gpio function [" << name << "] in Thing [" 
        << thing.name 
        << "] with [" << stuff<< "]"<< endl;
-  return setAttrs(thing, reply, stuff);
+  return thing.addAttrs(reply, stuff);
 }
 
 int getGpioFunction (Thing &thing, string &reply, string name, string stuff)
@@ -238,7 +173,7 @@ int getGpioFunction (Thing &thing, string &reply, string name, string stuff)
   cout << " running get gpio function [" << name << "] in Thing [" 
        << thing.name 
        << "] with [" << stuff<< "]"<< endl;
-  return getAttrs(thing, reply, stuff);
+  return thing.getAttrs(reply, stuff);
 
 }
 
@@ -254,7 +189,7 @@ int setNodeFunction(Thing &thing, string &reply, string name, string stuff)
 
   if (args.size() < 2 ) {
     cout <<"too few args .. running locally \n";
-    return setAttrs(thing, reply, stuff);
+    return thing.addAttrs(reply, stuff);
   }
 
   if (thing.fd == 0) {
@@ -299,7 +234,7 @@ int getNodeFunction(Thing &thing, string &reply, string name, string stuff)
 
   if (args.size() < 1 ) {
     cout <<"too few args .. running locally \n";
-    return getAttrs(thing, reply, stuff);
+    return thing.getAttrs(reply, stuff);
   }
 
   if (thing.fd == 0) {
@@ -896,15 +831,23 @@ int main(int argc, char *argv[])
       sClient sclient(1); // dummy for now
 
       string reply;
-      //string cmd="sysfoo/gpios/gpio_1/?dir=output&pin=1";
-      string cmd="gpio_1?dir=output&pin=1/foo?name=foo";
+      string cmd="sysfoo/gpios/gpio_1?dir=output&pin=1";
       //Things["sysfoo"] = new Thing("sysfoo");
+      //oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
+      //cout << "\n\nListing things  "<<" size " << Things.size()<<" cmd ["<<cmd<<"]"<< endl;
+      //ListThings(Things,"  ");
+
+      cmd="sysfoo?isa=socket&ip_address=127.0.0.1&port=2234/gpios/gpio_1?dir=output&pin=1&value=0&isa=gpio";
+      ///gpio_1?dir=output&pin=1/foo?name=foo";
       oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
+      cout << "\n\nListing things  "<<" size " << Things.size()<<" cmd ["<<cmd<<"]"<< endl;
+      ListThings(Things,"  ");
 
       cout << "Listing things  "<<" size " << Things.size()<<" "<< endl;
       //cout << "Listing things  "<< Things["sysfoo"]->name<<" size " << Things.size()<<" "<< endl;
 
-      ListKids(Things,"  ");
+      ListThings(Things,"  ");
+      //ListKids(Things,"  ");
     }
   KillThings(Things);
   

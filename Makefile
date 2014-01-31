@@ -3,7 +3,7 @@ all: things
 Things.o: Things.cc Things.h
 	g++ -g -c $<
 
-socket.o: socket.cc
+Socket.o: Socket.cc Socket.h
 	g++ -g -c $<
 
 main.o: main.cc Things.h
@@ -11,8 +11,8 @@ main.o: main.cc Things.h
 
 
 
-things: main.o Things.o socket.o cJSON.o
-	g++ -g -o $@ main.o Things.o socket.o cJSON.o -lpthread -lm -lrt
+things: main.o Things.o Socket.o cJSON.o
+	g++ -g -o $@ main.o Things.o Socket.o cJSON.o -lpthread -lm -lrt
 
 
 clean:
