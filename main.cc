@@ -462,12 +462,19 @@ int oneCommand (tMap &things,sClient &sclient, string &cmd, string &reply, Thing
 
   targ = things[newthing];
   targ->parent=parent;
+  // some extra processing here
 
   // at this point we add attributes if nstr starts with a '?'
   if (rc > 0 ) {
     targ->addAttrs(reply, newattrs);
     cout << " After addAttrs reply is [" << reply << "]\n";
   }
+  isa=targ->findThing(targ->Attrs,"isa");
+  if((isa) && (isa->value == "socket")) {
+    cout << " we got to connect this thing and send ["<<nstr<<"[ \n";
+    return 0;
+  }
+
   // or reacll oneCommand with   nstr as an argument
   if (nstr.size() == 0) return 0;
 

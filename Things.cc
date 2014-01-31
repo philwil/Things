@@ -229,6 +229,19 @@ int Thing::addAttrs(string &reply, string stuff)
     return 0;
 }
 
+Thing *Thing::findThing(tMap &things, string name)
+{
+  tMap::iterator it;
+  cout << "findThing ["<< name <<"]\n";
+
+  for (it = things.begin(); it != things.end(); ++it) 
+    {
+      cout << "looking for ["<< name <<"] found ["<<(*it).first<<"]\n";
+      if((*it).first == name)
+	return (*it).second;
+    }
+  return NULL;
+}
 
 int Thing::getAttrs(string &reply, string stuff)
 {

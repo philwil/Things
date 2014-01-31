@@ -47,6 +47,7 @@ public:
       }
   }
   
+  Thing * findThing(tMap &things, string name);
   int ListAttrs();
 
   // give me something on my list of things
