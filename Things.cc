@@ -179,13 +179,15 @@ int Thing::setAttrs(string &reply, string stuff)
   
   return 0;
 }
+
 //
 // Add / create attribures
 // stuff contains 
 // ?pin=1&dir=output&value=1
 // or
 //  ?pin&dir&value
-// watchout for isa=gpio
+// watchout for isa=something
+// in the case 
 // this has to be processed at the top level
 // 
 int Thing::addAttrs(string &reply, string stuff)
@@ -224,11 +226,12 @@ int Thing::addAttrs(string &reply, string stuff)
 	}
     }
     reply += "}";
-    cout << " Add Attrs reply [" << reply <<"]\n";
+    if(debug)cout << " Add Attrs reply [" << reply <<"]\n";
     
     return 0;
 }
 
+// given an arbitrary list of things, find a named thing
 Thing *Thing::findThing(tMap &things, string name)
 {
   tMap::iterator it;
@@ -243,6 +246,7 @@ Thing *Thing::findThing(tMap &things, string name)
   return NULL;
 }
 
+//get a list of attributes and values
 int Thing::getAttrs(string &reply, string stuff)
 {
     tMap::iterator it;
@@ -252,14 +256,16 @@ int Thing::getAttrs(string &reply, string stuff)
     {
 	if((*it).second) 
 	{
-	    cout <<" getting ["<<(*it).first<<"]\n";
-	  if (s1)
+	  //cout <<" getting ["<<(*it).first<<"]\n";
+	    if (s1)
 	    {
-	      s1 = false;
-	    } else {
-	    reply += ",";
-	  }
-	  reply += "\"" +(*it).first + "\":\"" + (*it).second->value + "\"";
+	        s1 = false;
+	    } 
+	    else 
+	    {
+	        reply += ",";
+	    }
+	    reply += "\"" +(*it).first + "\":\"" + (*it).second->value + "\"";
 	}
     }
     reply+="}";

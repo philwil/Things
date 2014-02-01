@@ -1,12 +1,14 @@
 #ifndef _THINGS_H
-#define THINGS_H
-// things.cc lets see how this worksout
+#define _THINGS_H
+// things.cc lets see how this work sout
 // solve the isa problem
 // gpio_i isa gpio
 // it must deep copy all the stuff that gpio uses
 // update gpio and all gpios get the update.
 //
-
+// this is all in development mode so we'll have several options that may no longer be used while we work out
+// the final form of all this.
+//
 #include <vector>
 #include <string>
 
@@ -18,36 +20,50 @@ class Thing
 {
 public:
   
-  Thing() {cout<<"Default Constructor of " << this <<endl;}
-
- Thing(string name):name(name), fd(0), isa("") , value("none") {
-    cout<<"Name Constructor of ["<<name<<"] @" << this <<endl;
-  }
-  
-  Thing(const Thing & rd)
+  Thing() 
   {
-    cout << "Copy Constructor of "<< this << " from " << &rd << endl;
-    name=rd.name;
-    vnum=rd.vnum;
+      cout<<"Default Constructor of " << this <<endl;
+  }
+
+  Thing(string name):name(name), fd(0), isa("") , value("none") 
+  {
+      cout<<"Name Constructor of ["<<name<<"] @" << this <<endl;
+  }
+
+  // we "should" copy all attributes and all kids
+  
+  Thing(const Thing &rd)
+  {
+      cout << "Copy Constructor of "<< this << " from " << &rd << endl;
+      name=rd.name;
+      value=rd.value;
+      tMap::iterator iter;
+      tMap rdattrs = rd.Attrs;
+      for ( iter = rdattrs.begin() ; iter != rdattrs.end(); ++iter )
+      {
+      	  Attrs[iter->first] = new Thing(*iter->second);
+      }
   }
   
   Thing & operator=(const Thing & rd)
   {
-    cout << this << '=' << &rd << endl;
-    name=rd.name;
-    vnum=rd.vnum;
+      cout << this << '=' << &rd << endl;
+      name=rd.name;
+      value=rd.value;
   }
   
-  ~Thing() {
-    cout<<"Destructor of " << this->name  <<endl;
-    tMap::iterator iter;
-    for ( iter = Attrs.begin() ; iter != Attrs.end(); ++iter )
+  // destructor
+  ~Thing() 
+  {
+      cout<<"Destructor of " << this->name  <<endl;
+      tMap::iterator iter;
+      for ( iter = Attrs.begin() ; iter != Attrs.end(); ++iter )
       {
-	delete iter->second;
+	  delete iter->second;
       }
   }
   
-  Thing * findThing(tMap &things, string name);
+  Thing *findThing(tMap &things, string name);
   int ListAttrs();
 
   // give me something on my list of things
@@ -76,22 +92,33 @@ public:
   // my name
   string name;
 
+  // my value
   string value;
+  bool valueChanged;
 
-  int vnum;
+
   string type;
   void *stuff;
+
   // what am i .. this can be blank
+  // this may also have to be a list
   string isa;
   Thing *isaThing;
+
+  /// hi Mom, Dad
   Thing *parent;
 
   // a list of things I have
   tMap Attrs;
   tMap Actions;
   tMap Kids;
-  
+  // used in isa
+
+  // this is a list of others like me
   vector<Thing *> myList;
+
+  //debug
+  int debug;
 };
 
 
