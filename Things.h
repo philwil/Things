@@ -15,6 +15,7 @@
 class Thing;
 
 typedef map<string, Thing*> tMap;
+typedef map<Thing*, Thing*> tIMap;
 
 class Thing
 {
@@ -25,7 +26,7 @@ public:
       cout<<"Default Constructor of " << this <<endl;
   }
 
-  Thing(string name):name(name), fd(0), isa("") , value("none") 
+ Thing(string name):name(name), fd(0), isa("") , value("none") , isaThing(NULL)
   {
       cout<<"Name Constructor of ["<<name<<"] @" << this <<endl;
   }
@@ -42,6 +43,13 @@ public:
       for ( iter = rdattrs.begin() ; iter != rdattrs.end(); ++iter )
       {
       	  Attrs[iter->first] = new Thing(*iter->second);
+	  Attrs[iter->first]->parent=this;
+      }
+      tMap rdkids = rd.Kids;
+      for ( iter = rdkids.begin() ; iter != rdkids.end(); ++iter )
+      {
+      	  Kids[iter->first] = new Thing(*iter->second);
+	  Kids[iter->first]->parent=this;
       }
   }
   
@@ -86,6 +94,7 @@ public:
   int setAttrs(string &reply, string stuff);
   int getAttrs(string &reply, string stuff);
 
+  int doIsa(tMap &isas, Thing &myIsa);
   // socket connection
   int fd;
 
@@ -103,7 +112,7 @@ public:
   // what am i .. this can be blank
   // this may also have to be a list
   string isa;
-  Thing *isaThing;
+  Thing * isaThing;
 
   /// hi Mom, Dad
   Thing *parent;
@@ -112,8 +121,8 @@ public:
   tMap Attrs;
   tMap Actions;
   tMap Kids;
-  // used in isa
-
+  // list of nodes that are also isas
+  tIMap IsaList;
   // this is a list of others like me
   vector<Thing *> myList;
 

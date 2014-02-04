@@ -71,6 +71,7 @@ int serv_receive(int fd, string &msg, string &reply)
 
 vector<string> myVector;
 tMap Things;
+tMap Isas;
 tMap Commands;
 
 
@@ -469,11 +470,15 @@ int oneCommand (tMap &things,sClient &sclient, string &cmd, string &reply, Thing
     targ->addAttrs(reply, newattrs);
     cout << " After addAttrs reply is [" << reply << "]\n";
   }
+
   isa=targ->findThing(targ->Attrs,"isa");
+
   if((isa) && (isa->value == "socket")) {
-    cout << " we got to connect this thing and send ["<<nstr<<"[ \n";
-    return 0;
+    cout << " ****** we got to connect this thing and send ["<<nstr<<"[ \n";
+    //return 0;
   }
+  if(isa)targ->doIsa(Isas, *isa);
+
 
   // or reacll oneCommand with   nstr as an argument
   if (nstr.size() == 0) return 0;
@@ -488,11 +493,12 @@ int oneCommand (tMap &things,sClient &sclient, string &cmd, string &reply, Thing
   return 0;
 }
 
+
 int anyCommand (int fd, string &cmd, string &reply)
 {
   vector<string> target;
   Thing *targ=NULL;
-  Thing *isa=NULL;
+  Thing *isa;
   
   vector <string> stuff;
   Split(stuff, cmd, " ", true);
@@ -520,7 +526,7 @@ int anyCommand (int fd, string &cmd, string &reply)
       
       cout << " running command ["<< stuff[0]
 	   <<"] on  ["<< targ->name
-	   <<"] isa ["<< targ->isa<<"]" << " with data[" << nstr <<"]" << endl;
+	   <<"] isa ["<< isa<<"]" << " with data[" << nstr <<"]" << endl;
     }
     
     if(!targ->Actions[stuff[0]]) 
@@ -556,7 +562,7 @@ int anyCommand (int fd, string &cmd, string &reply)
     cout << " get target is [" << target[0] << "]"<<endl;
     
     targ = Things[target[0]];
-    isa = targ->isaThing;
+    //isa = targ->isaThing;
     
     if (!targ)  {
       cout << " Sadly ["<<target[0]<<"] is not set up" << endl;
@@ -564,7 +570,7 @@ int anyCommand (int fd, string &cmd, string &reply)
       
       cout << " running command ["<< stuff[0]
 	   <<"] on  ["<< targ->name
-	   <<"] isa ["<< targ->isa<<"]" << " with data[" << nstr <<"]" << endl;
+	   <<"] isa ["<< isa<<"]" << " with data[" << nstr <<"]" << endl;
     }
     
     if(!targ->Actions[stuff[0]]) 
@@ -843,9 +849,8 @@ int main(int argc, char *argv[])
       //oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
       //cout << "\n\nListing things  "<<" size " << Things.size()<<" cmd ["<<cmd<<"]"<< endl;
       //ListThings(Things,"  ");
-
-      cmd="sysfoo?isa=socket&ip_address=127.0.0.1&port=2234/gpios/gpio_1?dir=output&pin=1&value=0&isa=gpio";
-      ///gpio_1?dir=output&pin=1/foo?name=foo";
+ 
+     ///gpio_1?dir=output&pin=1/foo?name=foo";
       oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
       cout << "\n\nListing things  "<<" size " << Things.size()<<" cmd ["<<cmd<<"]"<< endl;
       ListThings(Things,"  ");
@@ -856,6 +861,43 @@ int main(int argc, char *argv[])
       ListThings(Things,"  ");
       //ListKids(Things,"  ");
     }
+
+  if ((string)argv[1] == "Kids")
+    {
+      sClient sclient(1); // dummy for now
+
+      string reply;
+      string cmd;
+      //Things["sysfoo"] = new Thing("sysfoo");
+      //oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
+      //cout << "\n\nListing things  "<<" size " << Things.size()<<" cmd ["<<cmd<<"]"<< endl;
+      //ListThings(Things,"  ");
+ 
+     ///gpio_1?dir=output&pin=1/foo?name=foo";
+      cmd="sysfoo/gpios/gpio_1?dir=output&pin=1&isa=gpio";
+      oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
+      cout << "\n\nListing things  "<<" size " << Things.size()<<" cmd ["<<cmd<<"]"<< endl;
+      cmd="sysfoo/gpios/gpio_2?isa=gpio";
+      oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
+      cmd="sysfoo/gpios/gpio_3?isa=gpio";
+      oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
+      cmd="sysfoo/gpios/gpio_3?desc=a_gpio";
+      oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
+
+      cout << "\n\nListing things  "<<" size " << Things.size()<<" cmd ["<<cmd<<"]"<< endl;
+
+      //Thing foo(*Things["sysfoo"]);
+      //Things["foo"] = &foo;
+      ListThings(Things,"  ");
+
+      //delete &foo;
+      //cout << "Listing things  "<<" size " << Things.size()<<" "<< endl;
+      //cout << "Listing things  "<< Things["sysfoo"]->name<<" size " << Things.size()<<" "<< endl;
+
+      //ListThings(Things,"  ");
+      //ListKids(Things,"  ");
+    }
+  cout << " Killing Things" << endl;
   KillThings(Things);
   
   return 0;

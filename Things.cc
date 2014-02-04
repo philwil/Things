@@ -180,6 +180,87 @@ int Thing::setAttrs(string &reply, string stuff)
   return 0;
 }
 
+int Thing::doIsa(tMap &Isas, Thing &myIsa)
+{
+  cout <<" \n\ndoing Isa for ["<< myIsa.value<<"]\n";
+
+
+  if (!Isas[myIsa.value]) 
+  {
+      cout << " Creating Isa called ["<<myIsa.value<<"] \n"; 
+      Isas[myIsa.value]= new Thing;
+  }
+  else
+  {
+    cout << " Found Isa called ["<<myIsa.value<<"] \n"; 
+  }
+
+  // add this things to list of other things that are also isas 
+  if (!Isas[myIsa.value]->IsaList[this])
+    {
+      Isas[myIsa.value]->IsaList[this] = this;
+    }
+
+  cout <<" \n\ndone Isa for ["<< myIsa.value<<"]\n";
+  isaThing = Isas[myIsa.value];
+
+  // now copy all current attributes to the isa, if needed
+  tMap::iterator iter;
+  tIMap::iterator iIter;
+  for (iter = Attrs.begin(); iter != Attrs.end(); ++iter )
+    {
+      if (iter->first=="isa") continue;
+      if(!isaThing->Attrs[iter->first])
+	{
+	  cout << " Creating  Isa attribute ["<<iter->first<<"] from this ["<< this <<"]\n";
+	  isaThing->Attrs[iter->first] = new Thing(iter->first);
+	  cout << " Sending  Isa attribute ["<<iter->first<<"] to all others that need it \n";
+	  for (iIter = Isas[myIsa.value]->IsaList.begin(); iIter != Isas[myIsa.value]->IsaList.end(); ++iIter )
+	    {
+	      Thing * iThing = iIter->first;
+	      if (!iThing->Attrs[iter->first])
+		{
+		  iThing->Attrs[iter->first]=new Thing(iter->first);
+		}
+	    }
+	} 
+    }
+
+  for (iter = isaThing->Attrs.begin(); iter != isaThing->Attrs.end(); ++iter )
+    {
+      if(!Attrs[iter->first])
+	{
+	  cout << " Transferring attribute ["<<iter->first<<"] from ISA to This["<<this<<"]\n";
+	  Attrs[iter->first] = new Thing(iter->first);
+	} 
+    }
+  // also need to add this entity to the list of users of the isa if it is not already there 
+  // what about the kids of the attributes .. not yet
+
+
+  return 0;
+#if 0
+  isa=Things[Isa];
+
+  me->isa = Isa;
+  me->isaThing = isa;
+
+  //  Now copy all the isa attrs to attrs
+  // for thngs in  
+  //createNewThing("dir");
+  tMap::iterator iter;
+  for (iter = isa->Attrs.begin(); iter != isa->Attrs.end(); ++iter )
+  {
+    cout<<" TODO Copying ["<<iter->first<<"]" <<endl;
+    me->createNewThing(iter->first);
+  }
+  // lastle add me to the list of isa(s}
+  isa->myList.push_back(me);
+  return 0;
+#endif
+
+}
+
 //
 // Add / create attribures
 // stuff contains 
