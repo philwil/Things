@@ -881,8 +881,10 @@ int main(int argc, char *argv[])
       oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
       cmd="sysfoo/gpios/gpio_3?isa=gpio";
       oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
-      cmd="sysfoo/gpios/gpio_3?desc=a_gpio";
-      oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
+      cmd="sysfoo/gpios/gpio_3?desc=\"a new attr for gpio_3\"";
+      oneCommand(Things, sclient, cmd, reply, NULL);                // this will give all gpios a desc
+      cmd="sysfoo/gpios/gpio_1?desc=\"update desc for gpio_1\"";
+      oneCommand(Things, sclient, cmd, reply, NULL);                // this will give all gpios a desc
 
       cout << "\n\nListing things  "<<" size " << Things.size()<<" cmd ["<<cmd<<"]"<< endl;
 
