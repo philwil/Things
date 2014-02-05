@@ -116,6 +116,23 @@ int ListThings(tMap &things, string dummy)
   return 0;
 }
 
+string ListThings(tMap &things, string dummy, stringstream &reply)
+{
+  tMap::iterator iter;
+  for ( iter = things.begin() ; iter != things.end(); ++iter )
+  {
+    if (iter->second->isa.empty()) {
+      reply<<dummy<<iter->first<< ": [" <<(iter->second)->value<<"]"<<endl;
+    } else {
+      reply<<dummy<<iter->first<< " isa [" << (iter->second)->isa <<"]" <<endl;
+    }
+    ListThings(iter->second->Attrs, dummy + "{attr}   ", reply);
+    ListThings(iter->second->Kids, dummy + "   ", reply);
+  }
+
+  return 0;
+}
+
 int ListKids(tMap &things, string dummy)
 {
   tMap::iterator iter;
@@ -425,7 +442,7 @@ int getJustAttrs(string &result, string &cmd)
 // we find or make all the nodes / attributes
 //  sysfoo/mygpios/gpio_1/?dir=output&pin=1
 //
-int oneCommand (tMap &things,sClient &sclient, string &cmd, string &reply, Thing *parent)
+int oneCommand (tMap &things, sClient &sclient, string &cmd, string &reply, Thing *parent)
 {
   vector<string> target;
   Thing *targ=NULL;
@@ -445,17 +462,31 @@ int oneCommand (tMap &things,sClient &sclient, string &cmd, string &reply, Thing
 
   nstr.erase(0,target[0].size()+1);
   cout << " target is [" << target[0] << "] next string ["<<nstr<<"]"<< endl;
-    
+
   // target can be compound ie with attributes  //foo?name=myfoo&value=1/
+  // target can also be simply
+  // &command=list
 
   string newthing ="";
   rc = getJustThing(newthing, target[0]);
   string newattrs="";
   rc = getJustAttrs(newattrs, target[0]);
 
-  cout << " new thing is [" << newthing <<"] \n";
+  char ctype=target[0].at(0);
+
+  cout << " new thing is [" << newthing <<"] ctype ["<< ctype<<"] \n";
   cout << " new attrs is [" << newattrs <<"] \n";
-  //return 0;
+  
+  if((ctype == '?') && (newthing =="command=list") ) 
+    {
+      stringstream repss;
+      repss << "Listing things"<< endl;
+
+      ListThings(Things,"  ", repss);
+      repss << "\nDone listing things\n\n"<< endl;
+      reply = repss.str();
+      return 1;
+    }
 
   if(!things[newthing]) {
     things[newthing] = new Thing(newthing);
@@ -490,7 +521,7 @@ int oneCommand (tMap &things,sClient &sclient, string &cmd, string &reply, Thing
     return oneCommand(targ->Kids, sclient, nstr, reply, targ);
   }
   cout << " Now processing attributes in [" << nstr << "]\n"; 
-  return 0;
+  return 1;
 }
 
 
@@ -799,13 +830,49 @@ void *inputThread(void *data)
 
   int rc=1;
   char buffer[2048];
+  string prompt="\nthings=>";
+  string reply;
+
   cout << " Input  thread  created:" << "\n";
 
   while (rc >0) {
-    rc = RecvClient(sc->sock, buffer, sizeof buffer);
     if ( rc > 0 ) {
-      rc = SendClient(sc->sock, (string)buffer);
+      rc = SendClient(sc->sock, prompt);
     }
+    rc = RecvClient(sc->sock, buffer, sizeof buffer);
+    if (rc > 0)
+      {
+    buffer[rc]=0;
+    buffer[rc-1]=0;
+      }
+    if (rc > 1)
+      buffer[rc-2]=0;
+
+    cout << " got rc ["<<rc<<"] buffer["<< buffer<<"]\n";
+    string cmd = (string)buffer;
+    if (cmd=="list") 
+      {
+	ListThings(Things,"  ");
+	reply = "OK";
+      }
+    else if (cmd=="kill") 
+      {
+	KillThings(Things);
+	reply = "OK";
+      }
+    else
+      {
+	rc = oneCommand(Things, *sc, cmd, reply, NULL);                // implied any command
+	rc = reply.size();
+	cout << " Sending reply ["<<reply<<"] rc is "<<rc<<"\n";
+      }
+    if ( rc > 0 ) {
+      rc = SendClient(sc->sock, reply);
+    }
+
+
+
+
   }
   cout <<"client closed \n";
   close(sc->sock);  
@@ -834,7 +901,9 @@ int main(int argc, char *argv[])
 
   if ((string)argv[1] == "server")
     {
+      
       int port = 2345;
+      if (argc>2) port = atoi(argv[2]);
       cout <<" Running server on port ["<<port<<"]\n";
       socketServer(port, input_client, (void *)NULL);
     }
@@ -899,6 +968,18 @@ int main(int argc, char *argv[])
       //ListThings(Things,"  ");
       //ListKids(Things,"  ");
     }
+  if ((string)argv[1] == "Command")
+    { 
+      sClient sclient(1); // dummy for now
+
+      string reply;
+      string cmd="sysfoo/gpios/gpio_1?dir=output&pin=1&isa=gpio";
+      oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
+      cmd="?command=list";
+      oneCommand(Things, sclient, cmd, reply, NULL);                // implied any command
+    }
+
+
   cout << " Killing Things" << endl;
   KillThings(Things);
   

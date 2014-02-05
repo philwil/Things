@@ -7,16 +7,40 @@ working on
    we can have attributes in line
 
 ***the connection is next
+  rin things server [port] and all the telnetted stuff into that port will be executed as a oneCommand.
+
 
 ***then discovery  ??
+ping and search
+
 
 ** then isa
+
+got most of this done but we only isa at the level of the element.
+  ie gpio_1?isa=gpio&pin=3
+  we cannnot do mygpios?isa=gpiolist
+  and expect all the elements under the gpiolist to be copied across ... just yet.
+
+we have to work on commandsespecially working with the connection
+
+./things server 2244
+then send ?command=list to the port should list all the things 
+?commands could be
+  list
+  close
+  [set]
+  [get]  .. not sure we need these.
+
+
+
+2/4/2014 OK we'll get the connection working tonight.
+
 
 
 the one concept this a single one line url to set and get things
 
 For example 
-"sysfoo/?isa=connection&ip_addr=10.0.1.23&port=23456/gpios/gpio_1/?isa=gpio&dir=output&pin=1";
+"sysfoo/?isa=connection&ip_addr=10.0.1.23&port=2345/gpios/gpio_1/?isa=gpio&dir=output&pin=1";
 
 Just parsing the attributes now
 
