@@ -1,3 +1,28 @@
+2/5/2014
+Got a handle on what I want to do now
+add the cmd function to Thing.
+We start as a Thing
+prompt
+
+ <name>=>
+
+We want to get to the following commands
+
+add gpio_1 as a gpio
+set gpio_1.direction=input&pin=1
+scan gpio_1.value every second
+add remsys as a system 
+set remsys.ip_address=10.2.3.12&port=2234
+add remsys/gpio_5 as a gpio   // sends add gpio_5 as a gpio to remsys 
+set remsys/gpio_5.direction=output&pin=4
+send gpio_1.value to remsys/gpio_5.value every second
+set .port=1234       //scan on my port
+
+
+
+
+
+
 1/30/2014
 working on 
     ./things one
