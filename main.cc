@@ -839,7 +839,7 @@ void *inputThread(void *data)
 
   cout << " Input  thread  created:" << "\n";
   thing = Things["thing"] = new Thing("thing");
-
+  thing->isap=&Isas;
 
   while (rc >0) {
     prompt="\n"+ thing->name+"=>";

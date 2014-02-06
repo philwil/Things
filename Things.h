@@ -98,7 +98,7 @@ public:
   char *docmd(tMap&things, string &cmd);
   char *ListThings(tMap &things, string dummy);
   char *setAttrs(string stuff);
-
+  char *doIsa(string stuff);
   // socket connection
   int fd;
 
@@ -122,6 +122,8 @@ public:
   Thing *parent;
 
 
+  // pointer to global ISAs
+  tMap *isap;
   // a list of things I have
   tMap Attrs;
   tMap Actions;

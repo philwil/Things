@@ -239,6 +239,11 @@ char *Thing::docmd(tMap&things, string &cmd)
     {
       ocout << setAttrs(myCmds[1]);
     }
+  else if ((myCmds[0] == "isa") && (myCmds.size() > 1))
+    {
+      ocout << setAttrs(myCmds[1]);
+    }
+
   else if ( myCmds[0]=="list" )
     {
       string ss="  ";
@@ -250,6 +255,7 @@ char *Thing::docmd(tMap&things, string &cmd)
     }
   return (char *)(ocout.str()).c_str();
 }
+
 
 int Thing::doIsa(tMap &Isas, Thing &myIsa)
 {
@@ -329,6 +335,83 @@ int Thing::doIsa(tMap &Isas, Thing &myIsa)
   isa->myList.push_back(me);
   return 0;
 #endif
+
+}
+
+char *Thing::doIsa(string stuff)
+{
+  ostringstream ocout;
+  tMap ISAs = *isap;
+
+  ocout <<" \n\ndoing Isa for ["<< stuff<<"]\n";
+
+
+  if (!ISAs[stuff]) 
+  {
+      ocout << " Creating New Isa called ["<<stuff<<"] \n"; 
+      ISAs[stuff]= new Thing;
+  }
+  else
+  {
+    ocout << " Found Isa called ["<<stuff<<"] \n"; 
+  }
+
+  // add this things to list of other things that are also isas 
+  if (!ISAs[stuff]->IsaList[this])
+    {
+      ISAs[stuff]->IsaList[this] = this;
+    }
+
+  ocout <<" \n\ndone Isa for ["<< stuff<<"]\n";
+  isaThing = ISAs[stuff];
+
+  // now copy all current attributes to the isa, if needed
+  tMap::iterator iter;
+  tIMap::iterator iIter;
+  for (iter = Attrs.begin(); iter != Attrs.end(); ++iter )
+    {
+      if (iter->first=="isa") continue;
+      if(!isaThing->Attrs[iter->first])
+	{
+	  ocout << " Creating  Isa attribute ["<<iter->first<<"] from this ["<< this <<"]\n";
+	  isaThing->Attrs[iter->first] = new Thing(iter->first);
+	  ocout << " Sending  Isa attribute ["<<iter->first<<"] to all others that need it \n";
+	  for (iIter = ISAs[stuff]->IsaList.begin(); iIter != ISAs[stuff]->IsaList.end(); ++iIter )
+	    {
+	      Thing *iThing = iIter->first;
+	      if (!iThing->Attrs[iter->first])
+		{
+		  iThing->Attrs[iter->first]=new Thing(iter->first);
+		}
+	    }
+	} 
+    }
+
+  for (iter = isaThing->Attrs.begin(); iter != isaThing->Attrs.end(); ++iter )
+    {
+      if(!Attrs[iter->first])
+	{
+	  ocout << " Transferring attribute ["<<iter->first<<"] from ISA to This["<<this<<"]\n";
+	  Attrs[iter->first] = new Thing(iter->first);
+	} 
+    }
+  // also need to add this entity to the list of users of the isa if it is not already there 
+  // what about the kids of the attributes .. not yet
+  //  Now copy all the isa attrs to attrs
+  // for thngs in  
+  //createNewThing("dir");
+#if 0
+  tMap::iterator iter;
+  for (iter = isa->Attrs.begin(); iter != isa->Attrs.end(); ++iter )
+  {
+    cout<<" TODO Copying ["<<iter->first<<"]" <<endl;
+    me->createNewThing(iter->first);
+  }
+  // lastle add me to the list of isa(s}
+  isa->myList.push_back(me);
+  return 0;
+#endif
+  return (char *)(ocout.str()).c_str();
 
 }
 
