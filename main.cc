@@ -824,6 +824,8 @@ int runTest(void)
 
 
 // create a thread to process a client
+// but this needs to part of a Thing..
+
 void *inputThread(void *data)
 {
   sClient *sc = (sClient*)data;
@@ -832,10 +834,16 @@ void *inputThread(void *data)
   char buffer[2048];
   string prompt="\nthings=>";
   string reply;
+  char * rep;
+  Thing * thing;
 
   cout << " Input  thread  created:" << "\n";
+  thing = Things["thing"] = new Thing("thing");
+
 
   while (rc >0) {
+    prompt="\n"+ thing->name+"=>";
+
     if ( rc > 0 ) {
       rc = SendClient(sc->sock, prompt);
     }
@@ -850,11 +858,19 @@ void *inputThread(void *data)
 
     cout << " got rc ["<<rc<<"] buffer["<< buffer<<"]\n";
     string cmd = (string)buffer;
-    if (cmd=="list") 
+    rep = thing->docmd(Things, cmd);
+    cout << " Sending reply ["<<rep<<"] rc is "<<rc<<"\n";
+	
+    if ( rc > 0 ) 
       {
-	ListThings(Things,"  ");
-	reply = "OK";
+	rc = SendClient(sc->sock, (string)rep);
       }
+    if (0) {
+      if (cmd=="list") 
+	{
+	  ListThings(Things,"  ");
+	  reply = "OK";
+	}
     else if (cmd=="kill") 
       {
 	KillThings(Things);
@@ -866,10 +882,10 @@ void *inputThread(void *data)
 	rc = reply.size();
 	cout << " Sending reply ["<<reply<<"] rc is "<<rc<<"\n";
       }
-    if ( rc > 0 ) {
+      if ( rc > 0 ) {
       rc = SendClient(sc->sock, reply);
+      }
     }
-
 
 
 

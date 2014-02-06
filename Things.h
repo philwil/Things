@@ -93,8 +93,12 @@ public:
   int addAttrs(string &reply, string stuff);
   int setAttrs(string &reply, string stuff);
   int getAttrs(string &reply, string stuff);
-
   int doIsa(tMap &isas, Thing &myIsa);
+
+  char *docmd(tMap&things, string &cmd);
+  char *ListThings(tMap &things, string dummy);
+  char *setAttrs(string stuff);
+
   // socket connection
   int fd;
 
@@ -116,6 +120,7 @@ public:
 
   /// hi Mom, Dad
   Thing *parent;
+
 
   // a list of things I have
   tMap Attrs;

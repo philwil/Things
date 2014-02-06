@@ -180,6 +180,77 @@ int Thing::setAttrs(string &reply, string stuff)
   return 0;
 }
 
+char *Thing::setAttrs(string stuff)
+{
+  ostringstream ocout;
+
+  vector <string> args;
+  vector <string>::iterator it;
+  Split(args, stuff, "?&", true);
+  ocout<<"{ ";
+  bool s1 = true;
+  for (it = args.begin(); it != args.end(); ++it) 
+    {
+      ocout << *it << endl;
+      
+      vector <string> subs;
+      Split(subs, *it, "=", true);
+      
+      if (!Attrs[subs[0]]) 
+	{
+	  ocout << " Adding attribute ["<<subs[0]<<"] in ["<< name <<"]\n";
+	  Attrs[subs[0]]=new Thing(subs[0]);
+	  (Attrs[subs[0]])->value = subs[1];
+	}
+      else
+	{
+	  ocout << " Set value of  ["<<subs[0]<<"] in ["<< name <<"] to value ["<< subs[1]<<"]\n";
+	  (Attrs[subs[0]])->value = subs[1];
+	  if (s1) 
+	    {
+	      s1 = false;
+	      ocout <<"\""<<subs[0]<<"\"=\""<< subs[1]<<"\"";
+	    }
+	  else
+	    {
+	      ocout <<",\"" <<subs[0] << "\"=\""<<subs[1]<< "\"";
+	    }
+	}	  
+    }
+  ocout << "}";
+  return (char *)(ocout.str()).c_str();
+}
+
+// a basic command parser
+// Start with parsing the command split it up into words
+//
+char *Thing::docmd(tMap&things, string &cmd)
+{
+  ostringstream ocout;
+  vector <string> myCmds;
+  Split(myCmds, cmd," ", true);
+  // for now just run commands from a basic decoder
+  if ((myCmds[0] == "name") && (myCmds.size() > 1))
+    {
+      name=myCmds[1];
+      ocout << " Set new name to " << name <<" \n";
+    }
+  else if ((myCmds[0] == "set") && (myCmds.size() > 1))
+    {
+      ocout << setAttrs(myCmds[1]);
+    }
+  else if ( myCmds[0]=="list" )
+    {
+      string ss="  ";
+      ocout << ListThings(things, ss);
+    }
+  else
+    {
+      ocout <<"Hello from me [" << name <<"] cmd was ["<<cmd<<"] \n\n";
+    }
+  return (char *)(ocout.str()).c_str();
+}
+
 int Thing::doIsa(tMap &Isas, Thing &myIsa)
 {
   cout <<" \n\ndoing Isa for ["<< myIsa.value<<"]\n";
@@ -351,4 +422,22 @@ int Thing::getAttrs(string &reply, string stuff)
     }
     reply+="}";
     return 0;
+}
+
+char *Thing::ListThings(tMap &things, string dummy)
+{
+  ostringstream ocout;
+
+  tMap::iterator iter;
+  for ( iter = things.begin() ; iter != things.end(); ++iter )
+  {
+    if (iter->second->isa.empty()) {
+      ocout<<dummy<<iter->first<< ": [" <<(iter->second)->value<<"]"<<endl;
+    } else {
+      ocout<<dummy<<iter->first<< " isa [" << (iter->second)->isa <<"]" <<endl;
+    }
+    ocout << ListThings(iter->second->Attrs, dummy + "{attr}   ");
+    ocout << ListThings(iter->second->Kids, dummy + "   ");
+  }
+  return (char *)(ocout.str()).c_str();
 }
