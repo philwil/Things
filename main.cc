@@ -858,7 +858,7 @@ void *inputThread(void *data)
 
     cout << " got rc ["<<rc<<"] buffer["<< buffer<<"]\n";
     string cmd = (string)buffer;
-    rep = thing->docmd(Things, cmd);
+    rep = thing->doCMD(Things, cmd);
     cout << " Sending reply ["<<rep<<"] rc is "<<rc<<"\n";
 	
     if ( rc > 0 ) 

@@ -95,10 +95,18 @@ public:
   int getAttrs(string &reply, string stuff);
   int doIsa(tMap &isas, Thing &myIsa);
 
-  char *docmd(tMap&things, string &cmd);
+
   char *ListThings(tMap &things, string dummy);
-  char *setAttrs(string stuff);
+  char *setcAttrs(string stuff);
   char *doIsa(string stuff);
+
+  char *doCMD(tMap&things, string &cmd);
+  char *readCMD(tMap&things, string &cmd);
+  char *setCMD(tMap&things, string &cmd);
+
+
+  int getCmdThing(string &result, string &cmd);
+  int getCmdAttrs(string &result, string &cmd);
   // socket connection
   int fd;
 

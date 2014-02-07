@@ -38,6 +38,7 @@
 //
 
 #include <iostream>
+#include <fstream>
 #include <limits>
 #include <map>
 #include <cstring>
@@ -180,7 +181,7 @@ int Thing::setAttrs(string &reply, string stuff)
   return 0;
 }
 
-char *Thing::setAttrs(string stuff)
+char *Thing::setcAttrs(string stuff)
 {
   ostringstream ocout;
 
@@ -221,33 +222,173 @@ char *Thing::setAttrs(string stuff)
   return (char *)(ocout.str()).c_str();
 }
 
+int Thing::getCmdThing(string &result, string &cmd)
+{
+    int rc = 0;
+    vector<string> target;
+    cout << " Thing input [" << cmd << "]\n";
+
+    char ctype=cmd.at(0);
+    if ((ctype == '?') || (ctype == '&'))
+      {
+	result="";
+	cout << " Thing result [" << result << "]\n";
+	return 0;
+      }
+    Split(target, cmd, "?", true);
+    rc = target.size();
+    cout << " Thing target size " << rc << " target[0] ["<< target[0] << "] target[1] ["<< target[1]<<"] \n";
+    if (rc > 0 )
+       result=target[0];
+    
+    return rc;
+}
+
+int Thing::getCmdAttrs(string &result, string &cmd)
+{
+    int rc = 0;
+    vector<string> target;
+    cout << " Attrs input [" << cmd << "]\n";
+    char ctype=cmd.at(0);
+    if ((ctype == '?') || (ctype == '&'))
+      {
+	result=cmd;
+	cout << " Attrs result [" << result << "]\n";
+	return 1;
+      }
+    Split(target, cmd, "?", true);
+    rc = target.size();
+    cout << " Attr target size " << rc << " target[0] ["<< target[0] << "] target[1] ["<< target[1]<<"] \n";
+    if (rc > 1 )
+       result=target[1];
+    
+    return rc;
+}
+// this will add attrs to self 
+//    ?dir=output&desc=some_gpio&value=1
+// this will add a kid [ with attrs ]
+//  mykid?dir=output&desc=some_gpio&value=1
+//  and it can recurse
+//  mygoios/mygpio_1?dir=output&desc=some_gpio&value=1
+
+//  also understands  mygoios list ( I hope)
+//  also understands  mygoios/mygpio_1 list ( I hope)
+// 
+char *Thing::setCMD(tMap&things, string &cmd)
+{
+  ostringstream ocout;
+  vector<string> cmds;
+
+  if(cmd.size() < 1) {
+    ocout << " Cmd Done 1 size(" << cmd.size()<<")"<< endl;
+    return (char *)(ocout.str()).c_str();
+  }
+  Split(cmds, cmd, "/", true);
+  if(1) {
+    ocout << " Cmd Done 2 cmds.size(" << cmds.size()<<")"<< endl;
+    ocout << "           cmds[0] [" << cmds[0]<<"]"<< endl;
+    //return (char *)(ocout.str()).c_str();
+  }
+  // get the next command
+  string nextCmd = cmd;
+  nextCmd.erase(0,cmds[0].size()+1);
+
+  string newThing;
+  int rc_thing=getCmdThing(newThing, cmds[0]);
+  string newAttrs;
+  int rc_attrs=getCmdAttrs(newAttrs, cmds[0]);
+  if(1) {
+    ocout << " Cmd Done 3 thing(" << newThing <<") rc ("<<rc_thing<<")"<< endl;
+    ocout << "            attrs(" << newAttrs <<")rc ("<<rc_attrs<<")"<< endl;
+
+    //return (char *)(ocout.str()).c_str();
+  }
+  if ((rc_thing== 0) && (rc_attrs == 1))
+    {
+      ocout << setcAttrs(newAttrs)<<endl;
+      //ocout <<setCMD(Kids,nextCmd)<< endl; // recurse here
+      //ocout <<"Next CMD ["<<nextCmd<<"]  " << endl; // recurse here
+      return (char *)(ocout.str()).c_str();
+    }
+  //  ocout<<SetThing(
+  if(newThing.size() > 0)
+    {
+      if (!Kids[newThing])
+	{
+	  Kids[newThing] = new Thing(newThing);
+	}
+      Thing *targ = Kids[newThing];
+      targ->parent =  this;
+      ocout <<targ->setcAttrs(newAttrs)<<endl;
+      ocout <<targ->setCMD(Kids,nextCmd)<< endl; // recurse here
+      
+    } 
+  else 
+    {
+      ocout << " Cmd Done 2" << endl;
+    }
+  return (char *)(ocout.str()).c_str();
+}
+
+
+// just reads a file for now
+// next we'll process all the strings
+char *Thing::readCMD(tMap&things, string &fname)
+{
+  ostringstream ocout;
+  ifstream myFile;
+  ocout << " Read File ["<<fname<<"] \n";
+
+  myFile.open(fname.c_str());
+  string ss;
+  if (myFile.is_open()) {
+    while (!myFile.eof()) {
+      
+      getline(myFile,ss);
+      //      ss = output;
+      ocout<<ss<<endl;
+      ocout << doCMD(things, ss)<<endl;
+    }
+  }
+  myFile.close();
+  return (char *)(ocout.str()).c_str();
+}
 // a basic command parser
 // Start with parsing the command split it up into words
 //
-char *Thing::docmd(tMap&things, string &cmd)
+char *Thing::doCMD(tMap&things, string &cmd)
 {
   ostringstream ocout;
   vector <string> myCmds;
-  Split(myCmds, cmd," ", true);
+  if (cmd.size()==0) {
+    ocout << "No command"<<endl;
+    return (char *)(ocout.str()).c_str();
+  }
+  Split(myCmds, cmd, " ", true);
   // for now just run commands from a basic decoder
   if ((myCmds[0] == "name") && (myCmds.size() > 1))
     {
       name=myCmds[1];
       ocout << " Set new name to " << name <<" \n";
     }
-  else if ((myCmds[0] == "set") && (myCmds.size() > 1))
+  else if ((myCmds[0] == "set") && (myCmds.size() > 0))
     {
-      ocout << setAttrs(myCmds[1]);
+      ocout << " Set CMD [" << myCmds[1] <<"] \n";
+      ocout<<setCMD(things, myCmds[1]);
     }
-  else if ((myCmds[0] == "isa") && (myCmds.size() > 1))
+  else if ((myCmds[0] == "isa") && (myCmds.size() > 0))
     {
-      ocout << setAttrs(myCmds[1]);
+      ocout << setcAttrs(myCmds[1]);
     }
 
   else if ( myCmds[0]=="list" )
     {
       string ss="  ";
       ocout << ListThings(things, ss);
+    }
+  else if (( myCmds[0]=="read" ) && (myCmds.size() > 1)) // read commands from a file
+    {
+      ocout << readCMD(things, myCmds[1]);
     }
   else
     {
