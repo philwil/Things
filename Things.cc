@@ -270,6 +270,8 @@ int Thing::getCmdAttrs(string &result, string &cmd)
 //  mykid?dir=output&desc=some_gpio&value=1
 //  and it can recurse
 //  mygoios/mygpio_1?dir=output&desc=some_gpio&value=1
+// sort of works but creates all base lists to the local object.
+
 
 //  also understands  mygoios list ( I hope)
 //  also understands  mygoios/mygpio_1 list ( I hope)
