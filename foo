@@ -1,0 +1,4 @@
+name gpio_1
+set ?direction=output&pin=5&value=1
+list
+
