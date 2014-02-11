@@ -68,7 +68,20 @@ char *Thing::doCMD(tMap&things, ostringstream &ocout, string &cmd)
   // for now just run commands from a basic decoder
   if ((myCmds[0] == "name") && (myCmds.size() > 1))
     {
-      name=myCmds[1];
+      if (!things[myCmds[1]])
+	{
+          string oldname = name;
+	  things[myCmds[1]]=things[name];
+          name=myCmds[1];
+          things[oldname]=NULL;
+	  tMap::iterator it=things.find(oldname);
+          things.erase(it);
+	}
+      //    else
+      //{
+      //this = things[myCmds[1]];
+      //}
+
       ocout << " Set new name to " << name <<" \n";
       cout << " Set new name to " << name <<" \n";
     }
