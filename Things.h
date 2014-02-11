@@ -96,13 +96,13 @@ public:
   int doIsa(tMap &isas, Thing &myIsa);
 
 
-  char *ListThings(tMap &things, string dummy);
-  char *setcAttrs(string stuff);
-  char *doIsa(string stuff);
+  char *ListThings(tMap &things, ostringstream &ocout,string dummy);
+  char *setcAttrs(ostringstream &ocout,string stuff);
+  char *doIsa(ostringstream &ocout,string stuff);
 
-  char *doCMD(tMap&things, string &cmd);
-  char *readCMD(tMap&things, string &cmd);
-  char *setCMD(tMap&things, string &cmd);
+  char *doCMD(tMap&things, ostringstream &ocout,string &cmd);
+  char *readCMD(tMap&things, ostringstream &ocout,string &cmd);
+  char *setCMD(tMap&things, ostringstream &ocout,string &cmd);
 
 
   int getCmdThing(string &result, string &cmd);

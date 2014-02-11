@@ -52,6 +52,53 @@ using namespace std;
 
 #include "Things.h"
 
+// It all starts here
+// a basic command parser
+// Start with parsing the command split it up into words
+//
+char *Thing::doCMD(tMap&things, ostringstream &ocout, string &cmd)
+{
+  
+  vector <string> myCmds;
+  if (cmd.size()==0) {
+    ocout << "No command"<<endl;
+    return (char *)(ocout.str()).c_str();
+  }
+  Split(myCmds, cmd, " ", true);
+  // for now just run commands from a basic decoder
+  if ((myCmds[0] == "name") && (myCmds.size() > 1))
+    {
+      name=myCmds[1];
+      ocout << " Set new name to " << name <<" \n";
+      cout << " Set new name to " << name <<" \n";
+    }
+  else if ((myCmds[0] == "set") && (myCmds.size() > 0))
+    {
+      ocout << " Set CMD [" << myCmds[1] <<"] \n";
+      setCMD(things, ocout, myCmds[1]);
+    }
+  else if ((myCmds[0] == "isa") && (myCmds.size() > 0))
+    {
+      setcAttrs(ocout, myCmds[1]);
+    }
+
+  else if ( myCmds[0]=="list" )
+    {
+      string ss="  ";
+      ListThings(things, ocout,ss);
+    }
+  else if (( myCmds[0]=="read" ) && (myCmds.size() > 1)) // read commands from a file
+    {
+      readCMD(things, ocout, myCmds[1]);
+    }
+  else
+    {
+      ocout <<"Hello from me [" << name <<"] cmd was ["<<cmd<<"] \n\n";
+    }
+  return (char *)(ocout.str()).c_str();
+}
+
+
 
 int Thing::showList()
 {
@@ -181,9 +228,9 @@ int Thing::setAttrs(string &reply, string stuff)
   return 0;
 }
 
-char *Thing::setcAttrs(string stuff)
+char *Thing::setcAttrs(ostringstream &ocout,string stuff)
 {
-  ostringstream ocout;
+
 
   vector <string> args;
   vector <string>::iterator it;
@@ -276,9 +323,9 @@ int Thing::getCmdAttrs(string &result, string &cmd)
 //  also understands  mygoios list ( I hope)
 //  also understands  mygoios/mygpio_1 list ( I hope)
 // 
-char *Thing::setCMD(tMap&things, string &cmd)
+char *Thing::setCMD(tMap&things, ostringstream &ocout,string &cmd)
 {
-  ostringstream ocout;
+  
   vector<string> cmds;
 
   if(cmd.size() < 1) {
@@ -307,7 +354,8 @@ char *Thing::setCMD(tMap&things, string &cmd)
   }
   if ((rc_thing== 0) && (rc_attrs == 1))
     {
-      ocout << setcAttrs(newAttrs)<<endl;
+      setcAttrs(ocout, newAttrs);
+      ocout<<endl;
       //ocout <<setCMD(Kids,nextCmd)<< endl; // recurse here
       //ocout <<"Next CMD ["<<nextCmd<<"]  " << endl; // recurse here
       return (char *)(ocout.str()).c_str();
@@ -321,8 +369,10 @@ char *Thing::setCMD(tMap&things, string &cmd)
 	}
       Thing *targ = Kids[newThing];
       targ->parent =  this;
-      ocout <<targ->setcAttrs(newAttrs)<<endl;
-      ocout <<targ->setCMD(Kids,nextCmd)<< endl; // recurse here
+      targ->setcAttrs(ocout, newAttrs);
+      ocout<<endl;
+      targ->setCMD(Kids, ocout, nextCmd);
+      ocout<< endl; // recurse here
       
     } 
   else 
@@ -335,9 +385,9 @@ char *Thing::setCMD(tMap&things, string &cmd)
 
 // just reads a file for now
 // next we'll process all the strings
-char *Thing::readCMD(tMap&things, string &fname)
+char *Thing::readCMD(tMap&things, ostringstream &ocout, string &fname)
 {
-  ostringstream ocout;
+
   ifstream myFile;
   ocout << " Read File ["<<fname<<"] \n";
 
@@ -349,55 +399,14 @@ char *Thing::readCMD(tMap&things, string &fname)
       getline(myFile,ss);
       //      ss = output;
       ocout<<ss<<endl;
-      ocout << doCMD(things, ss)<<endl;
+      doCMD(things, ocout, ss);
+      ocout<<endl;
     }
   }
   myFile.close();
   return (char *)(ocout.str()).c_str();
 }
-// a basic command parser
-// Start with parsing the command split it up into words
-//
-char *Thing::doCMD(tMap&things, string &cmd)
-{
-  ostringstream ocout;
-  vector <string> myCmds;
-  if (cmd.size()==0) {
-    ocout << "No command"<<endl;
-    return (char *)(ocout.str()).c_str();
-  }
-  Split(myCmds, cmd, " ", true);
-  // for now just run commands from a basic decoder
-  if ((myCmds[0] == "name") && (myCmds.size() > 1))
-    {
-      name=myCmds[1];
-      ocout << " Set new name to " << name <<" \n";
-    }
-  else if ((myCmds[0] == "set") && (myCmds.size() > 0))
-    {
-      ocout << " Set CMD [" << myCmds[1] <<"] \n";
-      ocout<<setCMD(things, myCmds[1]);
-    }
-  else if ((myCmds[0] == "isa") && (myCmds.size() > 0))
-    {
-      ocout << setcAttrs(myCmds[1]);
-    }
 
-  else if ( myCmds[0]=="list" )
-    {
-      string ss="  ";
-      ocout << ListThings(things, ss);
-    }
-  else if (( myCmds[0]=="read" ) && (myCmds.size() > 1)) // read commands from a file
-    {
-      ocout << readCMD(things, myCmds[1]);
-    }
-  else
-    {
-      ocout <<"Hello from me [" << name <<"] cmd was ["<<cmd<<"] \n\n";
-    }
-  return (char *)(ocout.str()).c_str();
-}
 
 
 int Thing::doIsa(tMap &Isas, Thing &myIsa)
@@ -481,9 +490,9 @@ int Thing::doIsa(tMap &Isas, Thing &myIsa)
 
 }
 
-char *Thing::doIsa(string stuff)
+char *Thing::doIsa(ostringstream &ocout, string stuff)
 {
-  ostringstream ocout;
+  
   tMap ISAs = *isap;
 
   ocout <<" \n\ndoing Isa for ["<< stuff<<"]\n";
@@ -650,9 +659,9 @@ int Thing::getAttrs(string &reply, string stuff)
     return 0;
 }
 
-char *Thing::ListThings(tMap &things, string dummy)
+char *Thing::ListThings(tMap &things, ostringstream &ocout, string dummy)
 {
-  ostringstream ocout;
+  
 
   tMap::iterator iter;
   for ( iter = things.begin() ; iter != things.end(); ++iter )
@@ -662,8 +671,8 @@ char *Thing::ListThings(tMap &things, string dummy)
     } else {
       ocout<<dummy<<iter->first<< " isa [" << (iter->second)->isa <<"]" <<endl;
     }
-    ocout << ListThings(iter->second->Attrs, dummy + "{attr}   ");
-    ocout << ListThings(iter->second->Kids, dummy + "   ");
+    ListThings(iter->second->Attrs, ocout, dummy + "{attr}   ");
+    ListThings(iter->second->Kids, ocout, dummy + "   ");
   }
   return (char *)(ocout.str()).c_str();
 }

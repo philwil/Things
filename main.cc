@@ -636,12 +636,14 @@ int getCommand (vector <string> stuff)
        << "] with [" << stuff.at(1)<< "]"<< endl;
   return 0;
 }
+
 int showCommand (vector <string> stuff)
 {
   cout << " running show command [" 
        << "] with [" << stuff.at(1)<< "]"<< endl;
   return 0;
 }
+
 int helpCommand (vector <string> stuff)
 {
   cout << " running help command [" 
@@ -667,6 +669,7 @@ int setValue(map<string, Thing*>&things, string name, string object, string valu
   
   return 0;
 }
+
 
 int doCommand(string cmd) 
 {
@@ -838,10 +841,18 @@ void *inputThread(void *data)
   Thing * thing;
 
   cout << " Input  thread  created:" << "\n";
-  thing = Things["thing"] = new Thing("thing");
+  if (! Things["thing"])
+    {
+      Things["thing"] = new Thing("thing");
+    }
+
+
+  thing=Things["thing"];
+
   thing->isap=&Isas;
 
   while (rc >0) {
+    ostringstream ocout;
     prompt="\n"+ thing->name+"=>";
 
     if ( rc > 0 ) {
@@ -855,16 +866,17 @@ void *inputThread(void *data)
       }
     if (rc > 1)
       buffer[rc-2]=0;
-
-    cout << " got rc ["<<rc<<"] buffer["<< buffer<<"]\n";
     string cmd = (string)buffer;
-    rep = thing->doCMD(Things, cmd);
-    cout << " Sending reply ["<<rep<<"] rc is "<<rc<<"\n";
+    cout << " got rc ["<<rc<<"] cmd ["<< cmd<<"]\n";
+
+    rep = thing->doCMD(Things, ocout, cmd);
+    cout << " Sending reply ["<<ocout.str()<<"] rc is ["<<rc<<"]\n\n\n";
 	
     if ( rc > 0 ) 
       {
-	rc = SendClient(sc->sock, (string)rep);
+	rc = SendClient(sc->sock, (string)ocout.str());
       }
+#if 0
     if (0) {
       if (cmd=="list") 
 	{
@@ -886,8 +898,7 @@ void *inputThread(void *data)
       rc = SendClient(sc->sock, reply);
       }
     }
-
-
+#endif
 
   }
   cout <<"client closed \n";
