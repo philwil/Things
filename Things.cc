@@ -52,6 +52,8 @@ using namespace std;
 
 #include "Things.h"
 
+static tMap Isas;
+
 // It all starts here
 // a basic command parser
 // Start with parsing the command split it up into words
@@ -90,9 +92,14 @@ char *Thing::doCMD(tMap&things, ostringstream &ocout, string &cmd)
       ocout << " Set CMD [" << myCmds[1] <<"] \n";
       setCMD(things, ocout, myCmds[1]);
     }
+
   else if ((myCmds[0] == "isa") && (myCmds.size() > 0))
     {
-      setcAttrs(ocout, myCmds[1]);
+      ocout << " isa CMD .. type.. [" << myCmds[1] <<"] target ["<< myCmds[2]<<"] \n";
+      // first up the target
+      setCMD(things, ocout, myCmds[2]);
+      // then set up the isa
+      isaCMD(things, ocout, myCmds[1], myCmds[2]);
     }
 
   else if ( myCmds[0]=="list" )
@@ -323,6 +330,120 @@ int Thing::getCmdAttrs(string &result, string &cmd)
        result=target[1];
     
     return rc;
+}
+
+
+bool Thing::findFirstThing(string &finder, ostringstream &ocout, string &cmd)
+{
+  bool ret = false;
+  bool isBrother = ('/' == cmd.c_str()[0]);
+  vector<string> target;
+  Split(target, cmd, "/", true);
+  if (target.size() > 0) 
+    {
+      ret = true;
+      if (isBrother) 
+	{
+	  finder = '/'+target[0];
+	}
+      else
+	{
+	  finder = target[0];
+	}
+
+    }
+  return ret;
+}
+
+
+bool Thing::findNextCmd(string &finder, ostringstream &ocout, string &cmd)
+{
+  bool ret = false;
+  vector<string> target;
+  Split(target, cmd, "/", true);
+  if (target.size() > 1) 
+    {
+      ret = true;
+      finder = target[1];
+    }
+  return ret;
+}
+
+bool Thing::isaBrother(string &cmd)
+{
+  bool ret = ('/' == cmd.c_str()[0]);
+  return ret;
+}
+
+Thing *Thing::findThing(tMap&things, ostringstream &ocout, string &cmd)
+{
+  string firstThing;
+  string nextCmd;
+  Thing * thing;
+
+  if (findFirstThing(firstThing, ocout, cmd))
+    {
+      if (findNextCmd(nextCmd, ocout, cmd))
+	{
+	  if (isaBrother(firstThing))
+	    {
+	      thing = findThing(things, ocout, nextCmd);
+	    }
+	  else
+	    {
+	      thing = findThing(Kids, ocout, nextCmd);
+	    }
+	}
+      else // there is no next command, first thing is either it or a brother
+	{
+	  if (isaBrother(firstThing))
+	    {
+	      thing =  makeThing(things, ocout, firstThing);
+	    }
+	  else
+	    {
+	      thing =  makeThing(Kids, ocout, firstThing);
+	    }
+	}
+    }
+  return thing;
+}
+
+
+Thing *Thing::findIsa(tMap&things, ostringstream &ocout, string &isaName)
+{
+  Thing * targ;
+  targ =  makeThing(Isas, ocout, isaName);
+  return targ;
+}
+
+Thing * Thing::makeThing(tMap&things, ostringstream &ocout, string &tname)
+{
+  Thing * targ;
+  if (! things[tname])
+    {
+      things[tname] = new Thing(tname);
+    }
+  targ = things[tname];
+  return targ;
+}
+
+bool Thing::setIsa(ostringstream &ocout, Thing * isathing)
+{
+  isaThing=isathing;
+  return true;
+}
+
+char *Thing::isaCMD(tMap&things, ostringstream &ocout, string &isaName, string &cmd)
+{
+  Thing *thing = findThing(things, ocout, cmd);
+  Thing *isathing = findIsa(things, ocout, isaName);
+  if (thing)
+    {
+      thing->setIsa(ocout, isathing);
+    }
+  return (char *)(ocout.str()).c_str();
+
 }
 // this will add attrs to self 
 //    ?dir=output&desc=some_gpio&value=1

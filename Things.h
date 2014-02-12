@@ -104,6 +104,16 @@ public:
   char *readCMD(tMap&things, ostringstream &ocout,string &cmd);
   char *setCMD(tMap&things, ostringstream &ocout,string &cmd);
 
+  bool isaBrother(string &cmd);
+
+  char *isaCMD(tMap&things, ostringstream &ocout, string &isaName, string &cmd);
+  bool setIsa(ostringstream &ocout, Thing *isaThing);
+  bool findNextCmd(string &finder, ostringstream &ocout, string &cmd);
+  bool findFirstThing(string &finder, ostringstream &ocout, string &cmd);
+  Thing *findThing(tMap&things, ostringstream &ocout, string &cmd);
+  Thing *findIsa(tMap&things, ostringstream &ocout, string &isaName);
+
+  Thing *makeThing(tMap&things, ostringstream &ocout, string &tname);
 
   int getCmdThing(string &result, string &cmd);
   int getCmdAttrs(string &result, string &cmd);
