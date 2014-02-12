@@ -99,7 +99,7 @@ char *Thing::doCMD(tMap&things, ostringstream &ocout, string &cmd)
       // first up the target
       setCMD(things, ocout, myCmds[2]);
       // then set up the isa
-      //isaCMD(things, ocout, myCmds[1], myCmds[2]);
+      isaCMD(things, ocout, myCmds[1], myCmds[2]);
       return (char *)(ocout.str()).c_str();
     }
 
@@ -342,14 +342,16 @@ bool Thing::findFirstThing(string &finder, ostringstream &ocout, string &cmd)
   Split(target, cmd, "/", true);
   if (target.size() > 0) 
     {
+      vector<string> tthing;
+      Split(tthing, target[0], "?", true);
       ret = true;
       if (isBrother) 
 	{
-	  finder = '/'+target[0];
+	  finder = '/'+tthing[0];
 	}
       else
 	{
-	  finder = target[0];
+	  finder = tthing[0];
 	}
 
     }
@@ -834,11 +836,13 @@ char *Thing::ListThings(tMap &things, ostringstream &ocout, string dummy)
   tMap::iterator iter;
   for ( iter = things.begin() ; iter != things.end(); ++iter )
   {
-    if (iter->second->isa.empty()) {
-      ocout<<dummy<<iter->first<< ": [" <<(iter->second)->value<<"]"<<endl;
-    } else {
-      ocout<<dummy<<iter->first<< " isa [" << (iter->second)->isa <<"]" <<endl;
-    }
+    ocout<<dummy<<iter->first<< ": [" <<(iter->second)->value<<"]";
+    if((iter->second)->isaThing)
+      {
+	ocout<<" isa >" << (iter->second)->isaThing->name <<"<";
+      }
+    ocout<<endl;
+
     ListThings(iter->second->Attrs, ocout, dummy + "{attr}   ");
     ListThings(iter->second->Kids, ocout, dummy + "   ");
   }
