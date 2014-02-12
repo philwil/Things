@@ -98,7 +98,7 @@ char *Thing::doCMD(tMap&things, ostringstream &ocout, string &cmd)
   else if ( myCmds[0]=="list" )
     {
       string ss="  ";
-      ListThings(things, ocout,ss);
+      ListThings(things, ocout, ss);
     }
   else if (( myCmds[0]=="read" ) && (myCmds.size() > 1)) // read commands from a file
     {
@@ -345,6 +345,15 @@ char *Thing::setCMD(tMap&things, ostringstream &ocout,string &cmd)
     ocout << " Cmd Done 1 size(" << cmd.size()<<")"<< endl;
     return (char *)(ocout.str()).c_str();
   }
+  // if the first char is a '/' then we make a new brother else make a kid
+  const char *cmdstr=cmd.c_str();
+  bool isabrother=false;
+  if (cmdstr[0] == '/' )
+    {
+      ocout << "making a brother [" << cmdstr<<"]"<< endl;
+      isabrother=true;
+    }
+
   Split(cmds, cmd, "/", true);
   if(1) {
     ocout << " Cmd Done 2 cmds.size(" << cmds.size()<<")"<< endl;
@@ -353,8 +362,16 @@ char *Thing::setCMD(tMap&things, ostringstream &ocout,string &cmd)
   }
   // get the next command
   string nextCmd = cmd;
-  nextCmd.erase(0,cmds[0].size()+1);
+  nextCmd.erase(0, cmds[0].size()+1);
 
+  ocout << "next command take 1 [" << nextCmd <<"]"<< endl;
+  cmdstr=nextCmd.c_str();
+  if (cmdstr[0] == '/' )
+    {
+      nextCmd.erase(0, 1);
+    }
+  ocout << "next command take 2 [" << nextCmd <<"]"<< endl;
+    
   string newThing;
   int rc_thing=getCmdThing(newThing, cmds[0]);
   string newAttrs;
@@ -374,14 +391,30 @@ char *Thing::setCMD(tMap&things, ostringstream &ocout,string &cmd)
       return (char *)(ocout.str()).c_str();
     }
   //  ocout<<SetThing(
+  Thing * targ;
   if(newThing.size() > 0)
     {
-      if (!Kids[newThing])
+      if (isabrother) 
 	{
-	  Kids[newThing] = new Thing(newThing);
+	  if (!things[newThing])
+	    {
+	      things[newThing] = new Thing(newThing);
+	    }
+	  targ = things[newThing];
+	  targ->parent =  this->parent;
+
+	} 
+      else 
+	{
+
+	  if (!Kids[newThing])
+	    {
+	      Kids[newThing] = new Thing(newThing);
+	    }
+	  targ = Kids[newThing];
+	  targ->parent =  this;
+
 	}
-      Thing *targ = Kids[newThing];
-      targ->parent =  this;
       targ->setcAttrs(ocout, newAttrs);
       ocout<<endl;
       targ->setCMD(Kids, ocout, nextCmd);

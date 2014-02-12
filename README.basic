@@ -8,16 +8,16 @@ A simple example is a set of gpios on a small system.
 
 Take a url style of format
 
-//my_new_pi/gpio_1/?value=1
+/my_new_pi/gpio_1/?value=1
 
 This will set the value of gpio_1 on my_new_pi to 1 !
 
 It would be nice to be able to set this up very simply.
 
 try this 
-//my_new_pi/?isa=system&ip_address=10.0.1.2&port=3456
+/my_new_pi/?isa=system&ip_address=10.0.1.2&port=3456
 
-//my_new_pi/gpio_1/?isa=gpio&pin=2&dir=output&value=1
+/my_new_pi/gpio_1/?isa=gpio&pin=2&dir=output&value=1
 
 
 
@@ -31,6 +31,46 @@ But, looking at more recent releases of C++ there are some good structures that 
 So, I am also using this to learn about C++.
 
 Very basic code for now. Just about to start a Thing server (that runs on my_new_pi) for example.
+
+It all starts with running a server.
+
+If there are no things in the system it will create a simple thing called thing.
+
+Clients can connect on the designated port
+
+./things server port 
+
+can be used to change the port number.
+
+a few simple commands
+
+list  - lists out all the known things
+
+set - will set a new thing , a new kid or attributes etc...
+
+set mykid/gpios/gpio_1?value=1&dir=out&pin=23
+
+     will create 
+
+      mykid
+        gpios
+          gpio_1
+            {value=1}
+            {dir=out}
+            {pin=23}
+
+set /mybrother/gpios/gpio_1?value=1&dir=out&pin=23
+set /mybrother/gpios/gpio_2?value=1&dir=out&pin=24
+
+will create a new thing called mybrother with all the other stuff.
+
+
+
+
+
+
+
+
 
 
 
