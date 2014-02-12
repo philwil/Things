@@ -99,7 +99,8 @@ char *Thing::doCMD(tMap&things, ostringstream &ocout, string &cmd)
       // first up the target
       setCMD(things, ocout, myCmds[2]);
       // then set up the isa
-      isaCMD(things, ocout, myCmds[1], myCmds[2]);
+      //isaCMD(things, ocout, myCmds[1], myCmds[2]);
+      return (char *)(ocout.str()).c_str();
     }
 
   else if ( myCmds[0]=="list" )
