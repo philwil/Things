@@ -91,13 +91,13 @@ public:
   int showList();
   void Split(vector<string>& lst, const string& input, const string& separators, bool remove_empty);
   int addAttrs(string &reply, string stuff);
-  int setAttrs(string &reply, string stuff);
+  //int setAttrs(string &reply, string stuff);
   int getAttrs(string &reply, string stuff);
   int doIsa(tMap &isas, Thing &myIsa);
 
 
   char *ListThings(tMap &things, ostringstream &ocout,string dummy);
-  char *setcAttrs(ostringstream &ocout,string stuff);
+  char *setAttrs(ostringstream &ocout,string stuff);
   char *doIsa(ostringstream &ocout,string stuff);
 
   char *doCMD(tMap&things, ostringstream &ocout,string &cmd);

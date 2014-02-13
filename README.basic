@@ -52,6 +52,7 @@ set mykid/gpios/gpio_1?value=1&dir=out&pin=23
 
      will create 
 
+thing
       mykid
         gpios
           gpio_1
@@ -63,6 +64,51 @@ set /mybrother/gpios/gpio_1?value=1&dir=out&pin=23
 set /mybrother/gpios/gpio_2?value=1&dir=out&pin=24
 
 will create a new thing called mybrother with all the other stuff.
+thing=>list
+  mybrother: [none]
+     gpios: [none]
+        gpio_1: [none]
+        {attr}   dir: [out]
+        {attr}   pin: [23]
+        {attr}   value: [1]
+        gpio_2: [none]
+        {attr}   dir: [out]
+        {attr}   pin: [24]
+        {attr}   value: [1]
+  thing: [none]
+     mykid: [none]
+        gpios: [none]
+           gpio_1: [none]
+           {attr}   dir: [out]
+           {attr}   pin: [23]
+           {attr}   value: [1]
+
+
+Enough of this playing, we can now move onto actions
+
+Since , as we traverse the command string we "give"  the rest of the command to the next thing. Its time to introduce the 
+isa server.
+
+Lets try to get the isa's working first
+
+this is all that worked
+
+isa server /thing/mypi?ipaddress=10.0.2.3&port=2345
+
+
+isa server /mypi?ipaddress=10.0.2.3&port=2345  no
+
+
+But try to get this sequence working
+
+isa client /thing/mypi?ipaddress=10.0.2.3&port=2345
+
+set /thing/mypi/lets_create_some_gpios
+
+to send set lets_create_some_gpios to mypi
+   because its a client
+
+
 
 
 

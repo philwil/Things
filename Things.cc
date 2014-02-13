@@ -61,11 +61,12 @@ static tMap Isas;
 char *Thing::doCMD(tMap&things, ostringstream &ocout, string &cmd)
 {
   
-  vector <string> myCmds;
   if (cmd.size()==0) {
     ocout << "No command"<<endl;
     return (char *)(ocout.str()).c_str();
   }
+
+  vector <string> myCmds;
   Split(myCmds, cmd, " ", true);
   // for now just run commands from a basic decoder
   if ((myCmds[0] == "name") && (myCmds.size() > 1))
@@ -208,86 +209,86 @@ int Thing::addAction(string name, void *stuff)
   Actions[name]->stuff = stuff;
 }
 
-
-int Thing::setAttrs(string &reply, string stuff)
-{
-  vector <string> args;
-  vector <string>::iterator it;
-  Split(args, stuff, "?&", true);
-  reply="{ ";
-  bool s1 = true;
-  for (it = args.begin(); it != args.end(); ++it) 
-    {
-      cout << *it << endl;
-      
-      vector <string> subs;
-      Split(subs, *it, "=", true);
-      
-      if (!Attrs[subs[0]]) 
-	{
-	  cout << " No attribute ["<<subs[0]<<"] in ["<< name <<"]\n";
-	  //thing.attrs[subs[0]]=new Thing(subs[0]);
-	  //(thing.attrs[subs[0]])->value = subs[1];
-	}
-      else
-	{
-	  cout << " Set value of  ["<<subs[0]<<"] in ["<< name <<"] to value ["<< subs[1]<<"]\n";
-	  (Attrs[subs[0]])->value = subs[1];
-	  if (s1) 
-	    {
-	      s1 = false;
-	      reply += "\"" +subs[0] + "\"=\"" + subs[1] + "\"";
-	    }
-	  else
-	    {
-	      reply += ",\"" +subs[0] + "\"=\"" + subs[1] + "\"";
-	    }
-	}	  
-    }
-  reply += "}";
-  
-  return 0;
-}
-
-char *Thing::setcAttrs(ostringstream &ocout,string stuff)
+// set the value changed for attr
+char *Thing::setAttrs(ostringstream &ocout, string stuff)
 {
 
+    vector <string> args;
+    vector <string>::iterator it;
 
-  vector <string> args;
-  vector <string>::iterator it;
-  Split(args, stuff, "?&", true);
-  ocout<<"{ ";
-  bool s1 = true;
-  for (it = args.begin(); it != args.end(); ++it) 
+    Split(args, stuff, "?&", true);
+
+    bool s1 = true;
+    bool valueChanged = false;
+
+  // create and or set Attr values
+    for (it = args.begin(); it != args.end(); ++it) 
     {
-      ocout << *it << endl;
+	ocout << *it << endl;
       
-      vector <string> subs;
-      Split(subs, *it, "=", true);
-      
-      if (!Attrs[subs[0]]) 
+	vector <string> subs;
+	Split(subs, *it, "=", true);
+	Thing *attr;
+	
+	// create a new attr if needed
+	if (!Attrs[subs[0]]) 
 	{
-	  ocout << " Adding attribute ["<<subs[0]<<"] in ["<< name <<"]\n";
-	  Attrs[subs[0]]=new Thing(subs[0]);
-	  (Attrs[subs[0]])->value = subs[1];
+	    //ocout << " Adding attribute ["<<subs[0]<<"] in ["<< name <<"]\n";
+	    Attrs[subs[0]]=new Thing(subs[0]);
+	    attr = Attrs[subs[0]];
+	    attr->value = "";
 	}
-      else
+	attr = Attrs[subs[0]];
+
+	//ocout << " Set value of  ["<<subs[0]<<"] in ["<< name <<"] to value ["<< subs[1]<<"]\n";
+	// we are setting values
+	if (subs.size() > 0)
 	{
-	  ocout << " Set value of  ["<<subs[0]<<"] in ["<< name <<"] to value ["<< subs[1]<<"]\n";
-	  (Attrs[subs[0]])->value = subs[1];
-	  if (s1) 
+	    if (attr->value == subs[1])
 	    {
-	      s1 = false;
-	      ocout <<"\""<<subs[0]<<"\"=\""<< subs[1]<<"\"";
+		// no action value already set
 	    }
-	  else
+	    else
 	    {
-	      ocout <<",\"" <<subs[0] << "\"=\""<<subs[1]<< "\"";
+	        attr->value = subs[1];
+		valueChanged = true;
 	    }
-	}	  
+	}
     }
-  ocout << "}";
-  return (char *)(ocout.str()).c_str();
+    
+    //start the json reply
+    ocout<<"{ ";
+    
+    // TODO action to set values
+    if(valueChanged)
+    {
+	ocout<<"\"changed\":\"true\" ";
+	s1 = false;
+    }
+
+    // TODO action to get values
+    
+    // collect output values
+    
+    for (it = args.begin(); it != args.end(); ++it) 
+    {
+	vector <string> subs;
+	Split(subs, *it, "=", true);
+	Thing *attr;
+	
+	if (s1) 
+	{
+	    s1 = false;
+	}
+	else
+	{
+	    ocout <<",";
+	}
+	attr = Attrs[subs[0]];
+	ocout <<"\""<<subs[0]<<"\":\""<< attr->value<<"\"";
+    }	  
+    ocout << "}";
+    return (char *)(ocout.str()).c_str();
 }
 
 int Thing::getCmdThing(string &result, string &cmd)
@@ -333,7 +334,7 @@ int Thing::getCmdAttrs(string &result, string &cmd)
     return rc;
 }
 
-
+// OK
 bool Thing::findFirstThing(string &finder, ostringstream &ocout, string &cmd)
 {
   bool ret = false;
@@ -358,7 +359,7 @@ bool Thing::findFirstThing(string &finder, ostringstream &ocout, string &cmd)
   return ret;
 }
 
-
+// OK
 bool Thing::findNextCmd(string &finder, ostringstream &ocout, string &cmd)
 {
   bool ret = false;
@@ -437,6 +438,11 @@ bool Thing::setIsa(ostringstream &ocout, Thing * isathing)
   return true;
 }
 
+//isa client /thing/mypi?ipaddress=10.0.2.3&port=2345
+//means all set commands to this guy are sent via the sockect connected to ipaddress/port
+//
+//isa gpio means that we can understand a scan command
+//
 char *Thing::isaCMD(tMap&things, ostringstream &ocout, string &isaName, string &cmd)
 {
   Thing *thing = findThing(things, ocout, cmd);
@@ -458,9 +464,9 @@ char *Thing::isaCMD(tMap&things, ostringstream &ocout, string &isaName, string &
 
 
 //  also understands  mygoios list ( I hope)
-//  also understands  mygoios/mygpio_1 list ( I hope)
+//  also understands  /mygoios/mygpio_1 list ( I hope)
 // 
-char *Thing::setCMD(tMap&things, ostringstream &ocout,string &cmd)
+char *Thing::setCMD(tMap&things, ostringstream &ocout, string &cmd)
 {
   
   vector<string> cmds;
@@ -473,10 +479,10 @@ char *Thing::setCMD(tMap&things, ostringstream &ocout,string &cmd)
   const char *cmdstr=cmd.c_str();
   bool isabrother=false;
   if (cmdstr[0] == '/' )
-    {
-      ocout << "making a brother [" << cmdstr<<"]"<< endl;
+  {
+      ocout << "thing is a brother [" << cmd<<"]"<< endl;
       isabrother=true;
-    }
+  }
 
   Split(cmds, cmd, "/", true);
   if(1) {
@@ -488,14 +494,26 @@ char *Thing::setCMD(tMap&things, ostringstream &ocout,string &cmd)
   string nextCmd = cmd;
   nextCmd.erase(0, cmds[0].size()+1);
 
-  ocout << "next command take 1 [" << nextCmd <<"]"<< endl;
+  //ocout << "next command take 1 [" << nextCmd <<"]"<< endl;
   cmdstr=nextCmd.c_str();
   if (cmdstr[0] == '/' )
-    {
+  {
       nextCmd.erase(0, 1);
-    }
-  ocout << "next command take 2 [" << nextCmd <<"]"<< endl;
+  }
+ 
+
+  ocout << "next command is [" << nextCmd <<"]"<< endl;
+  ocout << "my name [" << name <<"]"<< endl;
+  ocout << "isaThing [" << isaThing <<"]"<< endl;
     
+  if ((isaThing) && (isaThing->name == "client"))
+    {
+      nextCmd.insert(0, "set /");
+      ocout << "myname ["<<name<<"] sending [" << nextCmd <<"] to client "<< endl;
+      //sendClient(ocout, nextCmd);
+      return (char *)(ocout.str()).c_str();
+    }
+
   string newThing;
   int rc_thing=getCmdThing(newThing, cmds[0]);
   string newAttrs;
@@ -508,14 +526,14 @@ char *Thing::setCMD(tMap&things, ostringstream &ocout,string &cmd)
   }
   if ((rc_thing== 0) && (rc_attrs == 1))
     {
-      setcAttrs(ocout, newAttrs);
+      setAttrs(ocout, newAttrs);
       ocout<<endl;
       //ocout <<setCMD(Kids,nextCmd)<< endl; // recurse here
       //ocout <<"Next CMD ["<<nextCmd<<"]  " << endl; // recurse here
       return (char *)(ocout.str()).c_str();
     }
   //  ocout<<SetThing(
-  Thing * targ;
+  Thing *targ;
   if(newThing.size() > 0)
     {
       if (isabrother) 
@@ -539,7 +557,7 @@ char *Thing::setCMD(tMap&things, ostringstream &ocout,string &cmd)
 	  targ->parent =  this;
 
 	}
-      targ->setcAttrs(ocout, newAttrs);
+      targ->setAttrs(ocout, newAttrs);
       ocout<<endl;
       targ->setCMD(Kids, ocout, nextCmd);
       ocout<< endl; // recurse here
