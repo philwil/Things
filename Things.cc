@@ -93,14 +93,32 @@ char *Thing::doCMD(tMap&things, ostringstream &ocout, string &cmd)
       ocout << " Set CMD [" << myCmds[1] <<"] \n";
       setCMD(things, ocout, myCmds[1]);
     }
-
+  else if (myCmds[0] == "isas")
+    {
+      if (myCmds.size() > 1)
+	{
+	  ocout << " isas CMD [" << myCmds[1] <<"] \n";
+	  ListIsas(things, ocout, myCmds[1]);
+	}
+      else
+	{
+          string foo="";
+	  ListIsas(things, ocout, foo);
+	}
+    }
   else if ((myCmds[0] == "isa") && (myCmds.size() > 0))
     {
-      ocout << " isa CMD .. type.. [" << myCmds[1] <<"] target ["<< myCmds[2]<<"] \n";
-      // first up the target
-      setCMD(things, ocout, myCmds[2]);
-      // then set up the isa
-      isaCMD(things, ocout, myCmds[1], myCmds[2]);
+      if (myCmds.size() > 1) {
+	cout << " isa CMD .. type.. [" << myCmds[1] <<"] target ["<< myCmds[2]<<"] \n";
+	// first up the target
+	setCMD(things, ocout, myCmds[2]);
+	// then set up the isa
+	return isaCMD(things, ocout, myCmds[1], myCmds[2]);
+
+      } else {
+	ocout << " isa CMD .. type.. [" << myCmds[1] <<"] target ["<< "none" <<"] \n";
+      }
+
       return (char *)(ocout.str()).c_str();
     }
 
@@ -306,7 +324,14 @@ int Thing::getCmdThing(string &result, string &cmd)
       }
     Split(target, cmd, "?", true);
     rc = target.size();
-    cout << " Thing target size " << rc << " target[0] ["<< target[0] << "] target[1] ["<< target[1]<<"] \n";
+    if (rc > 1)
+      {
+	cout << " Thing target size " << rc << " target[0] ["<< target[0] << "] target[1] ["<< target[1]<<"] \n";
+      }
+    else
+      {
+	cout << " Thing target size " << rc << " target[0] ["<< target[0] << "] \n";
+      }
     if (rc > 0 )
        result=target[0];
     
@@ -327,7 +352,12 @@ int Thing::getCmdAttrs(string &result, string &cmd)
       }
     Split(target, cmd, "?", true);
     rc = target.size();
-    cout << " Attr target size " << rc << " target[0] ["<< target[0] << "] target[1] ["<< target[1]<<"] \n";
+    cout << " Attr target size " << rc <<"] \n";
+    if (rc > 0 )
+      cout << " Attr target size " << rc << " target[0] ["<< target[0] << "] ";
+    if (rc > 1 )
+      cout << "target[1] ["<< target[1]<<"]";
+    cout <<"\n";
     if (rc > 1 )
        result=target[1];
     
@@ -379,17 +409,31 @@ bool Thing::isaBrother(string &cmd)
   return ret;
 }
 
+bool stripLeadingSlash( string &name)
+{
+  bool isBrother = ('/' == name.c_str()[0]);
+  if (isBrother)
+    {
+      name.erase(0,1);
+    }
+  return isBrother; 
+}
+
 Thing *Thing::findThing(tMap&things, ostringstream &ocout, string &cmd)
 {
   string firstThing;
   string nextCmd;
   Thing * thing;
+  bool aBrother;
+  cout << "findThing x1 ["<< cmd <<"]\n";
+  aBrother = stripLeadingSlash(cmd);
+  cout << "findThing x2 ["<< cmd <<"]\n";
 
   if (findFirstThing(firstThing, ocout, cmd))
     {
       if (findNextCmd(nextCmd, ocout, cmd))
 	{
-	  if (isaBrother(firstThing))
+	  if (aBrother)
 	    {
 	      thing = findThing(things, ocout, nextCmd);
 	    }
@@ -400,7 +444,7 @@ Thing *Thing::findThing(tMap&things, ostringstream &ocout, string &cmd)
 	}
       else // there is no next command, first thing is either it or a brother
 	{
-	  if (isaBrother(firstThing))
+	  if (aBrother)
 	    {
 	      thing =  makeThing(things, ocout, firstThing);
 	    }
@@ -442,18 +486,78 @@ bool Thing::setIsa(ostringstream &ocout, Thing * isathing)
 //means all set commands to this guy are sent via the sockect connected to ipaddress/port
 //
 //isa gpio means that we can understand a scan command
+//isa connection means that we use the connection to forward commands
 //
+
 char *Thing::isaCMD(tMap&things, ostringstream &ocout, string &isaName, string &cmd)
 {
+  cout << " running isaCMD .. findThing [" << cmd << "]\n"<< endl;
   Thing *thing = findThing(things, ocout, cmd);
+  cout << " running isaCMD .. findIsa [" << isaName << "]\n"<< endl;
   Thing *isathing = findIsa(things, ocout, isaName);
-  if (thing)
+
+  if (thing && isathing)
     {
+      cout << " running setIsa" << endl;
       thing->setIsa(ocout, isathing);
+      isathing->myList.push_back(thing);
+    }
+  else
+    {
+      cout << " Error in isaCMD" << endl;
     }
   return (char *)(ocout.str()).c_str();
-
 }
+
+
+// list all the isas or just one
+char *Thing::ListIsaItems(tMap&things, ostringstream &ocout, string &isaName)
+{
+  Thing *isathing = findIsa(things, ocout, isaName);
+  if(isathing)
+    {
+      for (vector<Thing *>::iterator it = isathing->myList.begin() ; it != isathing->myList.end(); ++it)
+	ocout << ' ' << (*it)->name<<"\n";
+      ocout << '\n';
+    }
+  return (char *)(ocout.str()).c_str();
+}
+
+// list all the isas or just one
+// isas
+// isas link
+//
+char *Thing::ListIsas(tMap&things, ostringstream &ocout, string &isaName)
+{
+  tMap::iterator iter;
+  //tIMap::iterator iIter;
+
+
+  //  Thing *thing = findThing(things, ocout, cmd);
+  
+  //Thing *isathing = findIsa(things, ocout, isaName);
+  //if (thing)
+  //{
+  //  thing->setIsa(ocout, isathing);
+  // }
+  //isathing->myList.push_back(this);
+  if (isaName.size() > 0 )
+    {
+      return ListIsaItems(things, ocout, isaName);
+    }
+  else 
+    {
+      for (iter = Isas.begin(); iter != Isas.end(); ++iter )
+	{
+	  ocout << " Isa [" <<iter->first<<"]\n";
+	  
+	}
+    }
+  return (char *)(ocout.str()).c_str();
+}
+
+
+
 // this will add attrs to self 
 //    ?dir=output&desc=some_gpio&value=1
 // this will add a kid [ with attrs ]
@@ -480,47 +584,47 @@ char *Thing::setCMD(tMap&things, ostringstream &ocout, string &cmd)
   bool isabrother=false;
   if (cmdstr[0] == '/' )
   {
-      ocout << "thing is a brother [" << cmd<<"]"<< endl;
+      cout << "thing is a brother [" << cmd<<"]"<< endl;
       isabrother=true;
+  } else {
+      cout << "thing is a kid [" << cmd<<"]"<< endl;
   }
 
   Split(cmds, cmd, "/", true);
   if(1) {
-    ocout << " Cmd Done 2 cmds.size(" << cmds.size()<<")"<< endl;
-    ocout << "           cmds[0] [" << cmds[0]<<"]"<< endl;
+    cout << " Cmd Done 2 cmds.size(" << cmds.size()<<")"<< endl;
+    
+    if (cmds.size()> 1)
+      cout << "           cmds[0] [" << cmds[0]<<"]"<< endl;
     //return (char *)(ocout.str()).c_str();
   }
+
+  if (cmds.size()< 1)
+    {
+      cout << "No command aborting"<<endl;
+      return (char *)(ocout.str()).c_str();
+    }
   // get the next command
   string nextCmd = cmd;
   nextCmd.erase(0, cmds[0].size()+1);
 
-  //ocout << "next command take 1 [" << nextCmd <<"]"<< endl;
+  cout << "next command take 1 [" << nextCmd <<"]"<< endl;
   cmdstr=nextCmd.c_str();
   if (cmdstr[0] == '/' )
   {
       nextCmd.erase(0, 1);
   }
+  cout << "next command take 2 [" << nextCmd <<"]"<< endl;
  
 
-  ocout << "next command is [" << nextCmd <<"]"<< endl;
-  ocout << "my name [" << name <<"]"<< endl;
-  ocout << "isaThing [" << isaThing <<"]"<< endl;
-    
-  if ((isaThing) && (isaThing->name == "client"))
-    {
-      nextCmd.insert(0, "set /");
-      ocout << "myname ["<<name<<"] sending [" << nextCmd <<"] to client "<< endl;
-      //sendClient(ocout, nextCmd);
-      return (char *)(ocout.str()).c_str();
-    }
 
   string newThing;
   int rc_thing=getCmdThing(newThing, cmds[0]);
   string newAttrs;
   int rc_attrs=getCmdAttrs(newAttrs, cmds[0]);
   if(1) {
-    ocout << " Cmd Done 3 thing(" << newThing <<") rc ("<<rc_thing<<")"<< endl;
-    ocout << "            attrs(" << newAttrs <<")rc ("<<rc_attrs<<")"<< endl;
+    cout << " Cmd Done 3 thing(" << newThing <<") rc ("<<rc_thing<<")"<< endl;
+    cout << "            attrs(" << newAttrs <<")rc ("<<rc_attrs<<")"<< endl;
 
     //return (char *)(ocout.str()).c_str();
   }
@@ -528,11 +632,8 @@ char *Thing::setCMD(tMap&things, ostringstream &ocout, string &cmd)
     {
       setAttrs(ocout, newAttrs);
       ocout<<endl;
-      //ocout <<setCMD(Kids,nextCmd)<< endl; // recurse here
-      //ocout <<"Next CMD ["<<nextCmd<<"]  " << endl; // recurse here
       return (char *)(ocout.str()).c_str();
     }
-  //  ocout<<SetThing(
   Thing *targ;
   if(newThing.size() > 0)
     {
@@ -559,6 +660,25 @@ char *Thing::setCMD(tMap&things, ostringstream &ocout, string &cmd)
 	}
       targ->setAttrs(ocout, newAttrs);
       ocout<<endl;
+      ocout << "next command is [" << nextCmd <<"]"<< endl;
+      ocout << "targ name [" << targ->name <<"]"<< endl;
+      ocout << "targ->isaThing [" << targ->isaThing <<"]"<< endl;
+      // special handling for a link
+      if ((targ->isaThing) && (targ->isaThing->name == "link"))
+      {
+	if (nextCmd.size() > 0) 
+	  {
+	    nextCmd.insert(0, "set /");
+	    ocout << "myname ["<<targ->name<<"] sending [" << nextCmd <<"] to client "<< endl;
+	  }
+	else
+	  {
+	    ocout << "myname ["<<targ->name<<"] no command to send "<< endl;
+	  }
+	  //sendClient(ocout, nextCmd);
+	  return (char *)(ocout.str()).c_str();
+      }
+      //nextCmd.insert(0, "/");
       targ->setCMD(Kids, ocout, nextCmd);
       ocout<< endl; // recurse here
       
@@ -806,11 +926,15 @@ int Thing::addAttrs(string &reply, string stuff)
     return 0;
 }
 
+
+
 // given an arbitrary list of things, find a named thing
 Thing *Thing::findThing(tMap &things, string name)
 {
   tMap::iterator it;
-  cout << "findThing ["<< name <<"]\n";
+  cout << "findThing 1 ["<< name <<"]\n";
+  stripLeadingSlash(name);
+  cout << "findThing 2 ["<< name <<"]\n";
 
   for (it = things.begin(); it != things.end(); ++it) 
     {

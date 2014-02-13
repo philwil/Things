@@ -95,7 +95,8 @@ public:
   int getAttrs(string &reply, string stuff);
   int doIsa(tMap &isas, Thing &myIsa);
 
-
+  char *ListIsas(tMap&things, ostringstream &ocout, string &isaName);
+  char *ListIsaItems(tMap&things, ostringstream &ocout, string &isaName);
   char *ListThings(tMap &things, ostringstream &ocout,string dummy);
   char *setAttrs(ostringstream &ocout,string stuff);
   char *doIsa(ostringstream &ocout,string stuff);

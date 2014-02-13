@@ -103,10 +103,46 @@ But try to get this sequence working
 
 isa client /thing/mypi?ipaddress=10.0.2.3&port=2345
 
+
 set /thing/mypi/lets_create_some_gpios
 
 to send set lets_create_some_gpios to mypi
    because its a client
+
+
+Next debug
+
+isa connection mypi2?ipaddress=10.0.2.3&port=2345 .. OK
+
+set mypi2?ipaddress=10.0.2.3&port=2346  .. OK
+set /mypi3?ipaddress=10.0.2.3&port=2346  .. OK
+
+isa connection /thing/mypi2?ipaddress=10.0.2.3&port=2345  busted .. now fixed
+
+
+Also add to connections after the ISA
+
+so make the 
+
+isas
+
+and
+
+isas <isa>
+
+commands work yes they do
+
+isa link foo2 .... busted ... now OK
+isa link /foo2 .... busted .. creates /foo2 .. now OK
+set foo2       .... OK
+set /foo2     .... OK
+set /  .. busted now OK
+
+
+
+
+
+
 
 
 
