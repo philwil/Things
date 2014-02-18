@@ -92,7 +92,7 @@ int socketServer(int port, void (*HandleClient)(int sock, void *data, struct soc
   return sock;
 }
 
-int connectServer(int port, void *ipname) 
+int ConnectServer(int port, void *ipname) 
 {
   int sock, clientsock;
   struct sockaddr_in server, client;

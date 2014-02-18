@@ -82,7 +82,8 @@ After the initial setup the following will suffice
     sysfoo/gpios/gpio_1/?value=1
 
 
-isa's define how to prcess the attributes
+isa's define how to porcess the attributes
    send to a connection
    write to gpios
 etc
+

@@ -51,6 +51,7 @@
 using namespace std;
 
 #include "Things.h"
+#include "Socket.h"
 
 static tMap Isas;
 
@@ -670,11 +671,36 @@ char *Thing::setCMD(tMap&things, ostringstream &ocout, string &cmd)
 	  {
 	    nextCmd.insert(0, "set /");
 	    ocout << "myname ["<<targ->name<<"] sending [" << nextCmd <<"] to client "<< endl;
+	    if(targ->sock == 0) 
+	      {
+                if(targ->Attrs["port"] && targ->Attrs["ipaddress"])
+		  {
+		    targ->sock = ConnectServer(atoi(targ->Attrs["port"]->value.c_str()),  (void *)targ->Attrs["ipaddress"]->value.c_str());
+		  }
+	      }
+	    if(targ->sock != 0) 
+	      {
+		int rc;
+                cout<< "Got a target socket ("<< targ->sock<<")\n";
+		rc = SendClient(targ->sock, nextCmd);
+                cout<< "Sent ["<<nextCmd<<"] to sock ("<<targ->sock<<") rc ("<<rc<<")\n";
+        
+		char cbuffer[1024];
+		rc=RecvClient(targ->sock, cbuffer, 1024);
+                if(rc>0) 
+		  {
+		    cbuffer[rc]=0;		    
+		    cout << cbuffer;
+		    
+		  }
+		return (char *)(ocout.str()).c_str();
+	      }
 	  }
 	else
 	  {
 	    ocout << "myname ["<<targ->name<<"] no command to send "<< endl;
 	  }
+
 	  //sendClient(ocout, nextCmd);
 	  return (char *)(ocout.str()).c_str();
       }

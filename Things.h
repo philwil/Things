@@ -119,6 +119,7 @@ public:
   int getCmdThing(string &result, string &cmd);
   int getCmdAttrs(string &result, string &cmd);
   // socket connection
+  int sock;
   int fd;
 
   // my name
