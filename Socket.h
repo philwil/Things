@@ -22,5 +22,6 @@ int socketServer(int port, void (*HandleClient)(int sock, void *data,  struct so
 
 int RecvClient(int sock, char *buffer, int len);
 int SendClient(int sock, string msg);
+int ConnectServer(int port, void *ipname);
 
 #endif

@@ -861,11 +861,19 @@ void *inputThread(void *data)
     rc = RecvClient(sc->sock, buffer, sizeof buffer);
     if (rc > 0)
       {
-    buffer[rc]=0;
-    buffer[rc-1]=0;
+	if(buffer[rc] == '\a')buffer[rc]=0;
+	if(buffer[rc] == '\r')buffer[rc]=0;
+	if(buffer[rc] == '\n')buffer[rc]=0;
+	if(buffer[rc-1] == '\a')buffer[rc-1]=0;
+	if(buffer[rc-1] == '\r')buffer[rc-1]=0;
+	if(buffer[rc-1] == '\n')buffer[rc-1]=0;
       }
     if (rc > 1)
-      buffer[rc-2]=0;
+      {
+	if(buffer[rc-2] == '\a')buffer[rc-2]=0;
+	if(buffer[rc-2] == '\r')buffer[rc-2]=0;
+	if(buffer[rc-2] == '\n')buffer[rc-2]=0;
+      }
     string cmd = (string)buffer;
     cout << " got rc ["<<rc<<"] cmd ["<< cmd<<"]\n";
 
@@ -917,6 +925,7 @@ void input_client(int sock, void *data, struct sockaddr_in *client)
    rc = pthread_create(&sC->thr, NULL, inputThread, (void *)sC);
    //Clients.push_back(j);
 }
+
 
 int main(int argc, char *argv[])
 {

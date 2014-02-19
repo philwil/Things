@@ -117,7 +117,8 @@ isa connection mypi2?ipaddress=10.0.2.3&port=2345 .. OK
 set mypi2?ipaddress=10.0.2.3&port=2346  .. OK
 set /mypi3?ipaddress=10.0.2.3&port=2346  .. OK
 
-isa connection /thing/mypi2?ipaddress=10.0.2.3&port=2345  busted .. now fixed
+isa link /thing/mypi2?ipaddress=10.0.2.3&port=2346  busted .. now fixed
+isa link /thing/mypi2?ipaddress=127.0.0.1&port=2346  busted .. now fixed
 
 
 Also add to connections after the ISA
@@ -137,6 +138,37 @@ isa link /foo2 .... busted .. creates /foo2 .. now OK
 set foo2       .... OK
 set /foo2     .... OK
 set /  .. busted now OK
+
+NOw to connect to a server and send the command
+
+Once we get that done we'll tidy it all up.
+
+
+
+This works
+isa link /thing/mypi2?ipaddress=127.0.0.1&port=2346  this works...
+
+set mypi2/gpios/gpio_1?value=1
+
+comes up with some goop...
+
+ Set CMD [mypi2/gpios/gpio_1?value=1] 
+{ }
+next command is [gpios/gpio_1?value=1]
+targ name [mypi2]
+targ->isaThing [0x110fff0]
+myname [mypi2] sending [set /gpios/gpio_1?value=1] to client 
+
+thing=>
+
+Well close to working we are cutting off characters.
+the last two. Fixed it .. now we are starting to work.
+
+
+We want to get to 
+
+Thing("gpios/gpio_1")<<"set value=1"
+
 
 
 
