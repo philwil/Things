@@ -1,3 +1,12 @@
+Revisions
+Start T2 and simplyfy the whole thing
+
+object << "a/whole/bunch/of/stuff"
+
+cout << object
+scan << "gpios"
+
+
 Initial commants 1/28/2014
   Phil Wilshire
 
