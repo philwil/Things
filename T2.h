@@ -17,15 +17,14 @@ public:
   T2() 
   {
     cout<<"Default Constructor " << this <<endl;
-    parent=NULL;
-    depth=0;
+    init();
   };
   
   T2(string name):name(name),value("none")
   {
+    //    T2();
     cout<<"Name Constructor ["<<name<<"] @" << this <<endl;
-    parent=NULL;
-    depth=0;
+    init();
   }
 
   ~T2()
@@ -46,6 +45,8 @@ public:
   {
     return Kids[name];
   }
+
+  void init() { parent=NULL;depth=0;};
 
   void setIndent(ostream& os)
   {
@@ -68,7 +69,7 @@ public:
 
   friend T2* operator<<(T2* t2, const string &name);
   friend ostream& operator<<(ostream& os, T2* t2);
-  void Show(ostream& os, string dummy);
+  void Show(ostream& os);
 
   string name;
   string value;

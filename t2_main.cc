@@ -41,7 +41,7 @@ int runTest(void)
 
   cout<< endl<<"Testing Show" << endl << endl;
 
-  T2s["gpios"]->Show(cout, "  ");
+  T2s["gpios"]->Show(cout);
   cout<< endl<<"Testing << operator" << endl << endl;
   cout << T2s["gpios"];
 

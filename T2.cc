@@ -30,21 +30,20 @@ using namespace std;
 #include "T2.h"
 
 
-void T2::Show(ostream &os, string dummy)
+void T2::Show(ostream &os)
 {
 
-    setIndent(os);
-    os<< name <<endl;
+    setIndent(os); os<< name <<endl;
     tMap::iterator iter;
     for (iter=Attrs.begin(); iter != Attrs.end(); ++iter)
       {
 	Attrs[iter->first]->setIndent(os);
-	os << iter->first<< " ["<<Attrs[iter->first]->
-value<<"]"<<endl;
+	os << iter->first
+	   << " ["<<Attrs[iter->first]->value<<"]"<<endl;
       }
     for (iter=Kids.begin(); iter != Kids.end(); ++iter)
       {
-	Kids[iter->first]->Show(os, "   ");;
+	Kids[iter->first]->Show(os);;
       }
 
 }
