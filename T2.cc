@@ -30,18 +30,21 @@ using namespace std;
 #include "T2.h"
 
 
-void T2::Show(string dummy)
+void T2::Show(ostream &os, string dummy)
 {
 
-     cout<<dummy << name <<endl;
+    setIndent(os);
+    os<< name <<endl;
     tMap::iterator iter;
     for (iter=Attrs.begin(); iter != Attrs.end(); ++iter)
       {
-	cout << dummy + "   " << iter->first<< " ["<<Attrs[iter->first]->value<<"]"<<endl;
+	Attrs[iter->first]->setIndent(os);
+	os << iter->first<< " ["<<Attrs[iter->first]->
+value<<"]"<<endl;
       }
     for (iter=Kids.begin(); iter != Kids.end(); ++iter)
       {
-	Kids[iter->first]->Show(dummy + "   ");;
+	Kids[iter->first]->Show(os, "   ");;
       }
 
 }
@@ -49,21 +52,28 @@ void T2::Show(string dummy)
 T2* operator<<(T2* t2, const string &name)
 {
     t2->Kids[name] = new T2(name);
+    t2->Kids[name]->parent =t2;
+    t2->Kids[name]->depth =t2->depth+1;
+
     return t2;
 }
+
 ostream& operator<<(ostream& os, T2* t2)
 {
-    string dummy = "  ";
     tMap::iterator iter;
-
-    os << dummy << t2->name<< endl;
+    t2->setIndent(os);
+    os << t2->name<< endl;
     for (iter=t2->Attrs.begin(); iter != t2->Attrs.end(); ++iter)
       {
-	os << dummy << iter->first<< " ["<<t2->Attrs[iter->first]->value<<"]"<<endl;
+	T2 *tx = t2->Attrs[iter->first];
+	tx->setIndent(os);
+	os << tx->name<< " ["<<tx->value<<"]"<<endl;
       }
     for (iter=t2->Kids.begin(); iter != t2->Kids.end(); ++iter)
       {
-	os << dummy +"  " << t2->Kids[iter->first];
+	T2 *tx = t2->Kids[iter->first];
+	tx->setIndent(os);
+	os << t2->Kids[iter->first];
       }
     return os;
 }

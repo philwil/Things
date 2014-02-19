@@ -38,8 +38,11 @@ int runTest(void)
   string foo = "gpio_2";
   T2s["gpios"]<< foo;
   T2s["gpios"]<< (string)"gpio_3";
-  T2s["gpios"]->Show("  ");
-  cout<< " Another test" << endl;
+
+  cout<< endl<<"Testing Show" << endl << endl;
+
+  T2s["gpios"]->Show(cout, "  ");
+  cout<< endl<<"Testing << operator" << endl << endl;
   cout << T2s["gpios"];
 
 }
