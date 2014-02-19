@@ -35,3 +35,5 @@ int main () {
   delete ppoly2;
   return 0;
 }
+
+//http://www.cplusplus.com/doc/tutorial/inheritance/
