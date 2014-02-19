@@ -6,22 +6,25 @@ class Polygon {
   protected:
     int width, height;
   public:
-    Polygon (int a, int b) : width(a), height(b) {}
+  Polygon (int a, int b, string name) : width(a), height(b), name(name) {}
+    string name;
     virtual int area (void) =0;
+  //virtual int area (void);
     void printarea()
-      { cout << this->area() << '\n'; }
+  { cout << "area of a "<<name<<"angle is "<<this->area() << '\n'; }
 };
 
 class Rectangle: public Polygon {
   public:
-    Rectangle(int a,int b) : Polygon(a,b) {}
+    
+  Rectangle(int a,int b) : Polygon(a,b,"rect") {}
     int area()
       { return width*height; }
 };
 
 class Triangle: public Polygon {
   public:
-    Triangle(int a,int b) : Polygon(a,b) {}
+  Triangle(int a,int b) : Polygon(a,b,"tri"){}
     int area()
       { return width*height/2; }
 };
