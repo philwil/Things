@@ -1,10 +1,33 @@
 Revisions
+
+1/ allow a cascaded message 
+    object << "/some?dir=our&name=foo/funny/string/"
+
+add back the socket/port concept
+
+./t2 mystuff@2345 starts/connects with  the mystuff object at 2345
+./t2 mystuff@somewhere:2345 creates a link to the mystuff object on somewhere:2345
+./t2 mystuff
+
+
+
+
+1/19/2014
+got the string splitter working
+gets name,attrs and remains from an input string.
+
+ name[some] attrs [?dir=our&name=foo] remains [/funny/string/] src [/some?dir=our&name=foo/funny/string/]
+
+
+1/18/2014
 Start T2 and simplyfy the whole thing
 
 object << "a/whole/bunch/of/stuff"
 
 cout << object
 scan << "gpios"
+
+
 
 
 Initial commants 1/28/2014
