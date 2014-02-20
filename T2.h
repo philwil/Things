@@ -80,5 +80,5 @@ public:
 
 };
 
-
+int fixString(string &name, string &attrs, string&remains, string &src);
 #endif

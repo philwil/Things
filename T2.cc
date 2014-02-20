@@ -28,6 +28,7 @@ cout << mything  to get a listing
 using namespace std;
 
 #include "T2.h"
+extern tMap Kids;
 
 
 void T2::Show(ostream &os)
@@ -47,14 +48,63 @@ void T2::Show(ostream &os)
       }
 
 }
+// this is the main object loader
+// /gpios/gpio_4  will add gpio_4 to gpios
+// /gpios/gpio_4?pin=23&dir=output  will add gpio_4 to gpios with pin=23 and dir = output
+// scan for a leading / then take the output up to the ebd of the string or the next /
+// a leadig slash will shif the focus onto the main Things register
+//
 
-T2* operator<<(T2* t2, const string &name)
+int fixString(string &sname, string &attrs, string &remains, string &src)
 {
-    t2->Kids[name] = new T2(name);
-    t2->Kids[name]->parent =t2;
-    t2->Kids[name]->depth =t2->depth+1;
+  int ret = 0;
+  sname = src;
+  if(sname.find('/',0) == 0)
+    {
+      ret = 1;
+      sname.erase(0,1);
+    }
+  size_t end1 = sname.find('/',0);
+  if (end1 == string::npos)
+    {
+      string empty;
+      remains=empty;
+    }
+  else
+    {
+      string dummy = sname.substr(0, end1);
+      remains = sname.substr(end1);
+      sname = dummy;
+    }
+   end1 = sname.find('?',0);
+   if (end1 != string::npos)
+     {
+      attrs = sname.substr(end1);
+      sname.erase(end1, string::npos);
+      }
+  return ret;
+}
+ 
+T2* operator<<(T2* t2, const string &sname)
+{
 
-    return t2;
+  
+  /// look for leading slash, if found add this to the global Kids
+  if(sname.find('/',0) == 0)
+    {
+      string nname=sname;
+      nname.erase(0,1);
+      Kids[nname] = new T2(nname);
+      Kids[nname]->parent = NULL;
+      Kids[nname]->depth = 0;
+    }
+  else 
+    {
+      t2->Kids[sname] = new T2(sname);
+      t2->Kids[sname]->parent = t2;
+      t2->Kids[sname]->depth = t2->depth+1;
+    }
+  return t2;
 }
 
 ostream& operator<<(ostream& os, T2* t2)

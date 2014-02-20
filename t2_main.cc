@@ -22,28 +22,56 @@ using namespace std;
 #include "Socket.h"
 
 
-tMap T2s;
+tMap Kids;
 
+// todo add this as another operator
+int showKids(ostream& os)
+{ 
+  tMap::iterator iter;
+  for (iter=Kids.begin(); iter != Kids.end(); ++iter)
+    {
+      os << Kids[iter->first];
+    }
+  return 0;
+}
 
 int runTest(void)
 {
-  cout << "Create a few and show them " << endl;
-  T2s["one"]=new T2("one");
-  T2s["two"]=new T2("two");
-  T2s["gpios"]=new T2("gpios");
-  T2s["gpios"]->addKid("gpio_1");
 
-  T2s["gpios"]->getKid("gpio_1")->addAttr("pin","1");
-  T2s["gpios"]->getKid("gpio_1")->addAttr("dir","out");
+
+
+
+  cout << "Create a few and show them " << endl;
+  Kids["one"]=new T2("one");
+  Kids["two"]=new T2("two");
+  Kids["gpios"]=new T2("gpios");
+  Kids["gpios"]->addKid("gpio_1");
+
+  Kids["gpios"]->getKid("gpio_1")->addAttr("pin","1");
+  Kids["gpios"]->getKid("gpio_1")->addAttr("dir","out");
   string foo = "gpio_2";
-  T2s["gpios"]<< foo;
-  T2s["gpios"]<< (string)"gpio_3";
+  Kids["gpios"]<< foo;
+  Kids["gpios"]<< (string)"/pwms";
 
   cout<< endl<<"Testing Show" << endl << endl;
 
-  T2s["gpios"]->Show(cout);
+  Kids["gpios"]->Show(cout);
   cout<< endl<<"Testing << operator" << endl << endl;
-  cout << T2s["gpios"];
+  cout << Kids["gpios"];
+
+  cout<< endl<<"Testing all Kids" << endl << endl;
+  showKids(cout);
+
+  cout << "testing some string stuff" << endl;
+  string foo1("/starts/with/slash");
+  size_t start = 0;
+  size_t eq1 = foo1.find('/',start);
+  size_t eq2 = foo1.find('/',start+1);
+  cout << "eq1 ("<<eq1<<") eq2 (" <<eq2 <<") foo1["<<foo1<<"]"<< endl;
+  string name, attrs,remains,src;
+  src="/some?dir=our&name=foo/funny/string/";
+  int rc = fixString(name, attrs, remains, src);
+  cout <<  " name["<<name<<"] attrs ["<<attrs<<"] remains ["<<remains<<"] src ["<<src<<"]"<<endl;
 
 }
 
