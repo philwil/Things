@@ -59,13 +59,23 @@ public:
     Kids[name]->parent = this;
     Kids[name]->depth = this->depth+1;
   }
-  void addAttr(const string name, const string value)
+
+  void addAttr(const string name)
   {
     Attrs[name] = new T2(name);
-    Attrs[name]->value = value;
     Attrs[name]->parent = this;
     Attrs[name]->depth = this->depth+2;
   }
+
+  void addAttr(const string name, const string value)
+  {
+    addAttr(name);
+    Attrs[name]->value = value;
+    valChanged = true;
+  }
+
+  void SetAttr(string &sattrs);
+  void SetAttrs(string &sattrs);
 
   friend T2* operator<<(T2* t2, const string &name);
   friend ostream& operator<<(ostream& os, T2* t2);
@@ -75,10 +85,11 @@ public:
   string value;
   T2 *parent;
   int depth;
+  bool valChanged;
   tMap Attrs;
   tMap Kids;
 
 };
 
-int fixString(string &name, string &attrs, string&remains, string &src);
+int SplitString(string &name, string &attrs, string&remains, string &src);
 #endif

@@ -38,9 +38,6 @@ int showKids(ostream& os)
 int runTest(void)
 {
 
-
-
-
   cout << "Create a few and show them " << endl;
   Kids["one"]=new T2("one");
   Kids["two"]=new T2("two");
@@ -51,8 +48,10 @@ int runTest(void)
   Kids["gpios"]->getKid("gpio_1")->addAttr("dir","out");
   string foo = "gpio_2";
   Kids["gpios"]<< foo;
-  Kids["gpios"]<< (string)"/pwms";
-
+  Kids["gpios"]<< (string)"/pwms/pwm1/output";
+  string foo1("/foo1/starts?ip=1234&node=1122/with?dir=out&value=1/slash");
+  string foo2("/foo1/starts/with/slash");
+  Kids["gpios"] << foo1;
   cout<< endl<<"Testing Show" << endl << endl;
 
   Kids["gpios"]->Show(cout);
@@ -63,14 +62,15 @@ int runTest(void)
   showKids(cout);
 
   cout << "testing some string stuff" << endl;
-  string foo1("/starts/with/slash");
+
+
   size_t start = 0;
   size_t eq1 = foo1.find('/',start);
   size_t eq2 = foo1.find('/',start+1);
   cout << "eq1 ("<<eq1<<") eq2 (" <<eq2 <<") foo1["<<foo1<<"]"<< endl;
   string name, attrs,remains,src;
   src="/some?dir=our&name=foo/funny/string/";
-  int rc = fixString(name, attrs, remains, src);
+  int rc = SplitString(name, attrs, remains, src);
   cout <<  " name["<<name<<"] attrs ["<<attrs<<"] remains ["<<remains<<"] src ["<<src<<"]"<<endl;
 
 }
