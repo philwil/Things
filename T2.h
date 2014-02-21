@@ -46,13 +46,20 @@ public:
     return Kids[name];
   }
 
-  void init() { parent=NULL;depth=0;};
+  void init() {parent=NULL; depth=0;};
 
-  void setIndent(ostream& os)
+  void setIndent(ostream& os, int extra)
   {
     int idx = depth+1;
     while (--idx) {os << "  ";} 
+    while (extra--){os << " ";} 
   }
+
+  void setIndent(ostream& os)
+  {
+    setIndent(os, 0);
+  }
+
   void addKid(const string name)
   {
     Kids[name] = new T2(name);
@@ -64,7 +71,7 @@ public:
   {
     Attrs[name] = new T2(name);
     Attrs[name]->parent = this;
-    Attrs[name]->depth = this->depth+2;
+    Attrs[name]->depth = this->depth;
   }
 
   void addAttr(const string name, const string value)

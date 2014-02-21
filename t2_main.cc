@@ -49,7 +49,7 @@ int runTest(void)
   string foo = "gpio_2";
   Kids["gpios"]<< foo;
   Kids["gpios"]<< (string)"/pwms/pwm1/output";
-  string foo1("/foo1/starts?ip=1234&node=1122/with?dir=out&value=1/slash");
+  string foo1("foo1/starts?ip=1234&node=1122/with?dir=out&value=1/slash");
   string foo2("/foo1/starts/with/slash");
   Kids["gpios"] << foo1;
   cout<< endl<<"Testing Show" << endl << endl;
