@@ -1,13 +1,15 @@
 Revisions
 
-1/ allow a cascaded message 
+1/ allow a cascaded message with attrd 
     object << "/some?dir=our&name=foo/funny/string/"
+    done 1/20/2014
 
 add back the socket/port concept
 
+
 ./t2 mystuff@2345 starts/connects with  the mystuff object at 2345
 ./t2 mystuff@somewhere:2345 creates a link to the mystuff object on somewhere:2345
-./t2 mystuff
+./t2 mystuff "some string"  performs the string pinput to mystuff
 
 
 
