@@ -5,7 +5,7 @@ use operator overrides to make it work
 #ifndef _T2__H
 #define _T2__H
 
-
+#include "Socket.h"
 class T2;
 typedef map<string, T2*> tMap;
 
@@ -87,6 +87,8 @@ public:
   friend T2* operator<<(T2* t2, const string &name);
   friend ostream& operator<<(ostream& os, T2* t2);
   void Show(ostream& os);
+
+  sClient * client;
 
   string name;
   string value;

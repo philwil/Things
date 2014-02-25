@@ -33,13 +33,13 @@ using namespace std;
 extern tMap Kids;
 
 //used to split an attr (s1=s2) into s1 ans s2
-int SplitAttr(string &s1, string &s2, const string &sattrs)
+int SplitIt(string &s1, string &s2, const string &sattrs, const char &c)
 {
     int rc = 0;
     if(sattrs.size() > 0) 
     {
 	size_t mid;
-	mid = sattrs.find('=',0);
+	mid = sattrs.find(c,0);
 	if(string::npos != mid)
 	{
 	    s1=sattrs.substr(0,mid);
@@ -54,6 +54,24 @@ int SplitAttr(string &s1, string &s2, const string &sattrs)
     }
     return rc;
 }
+
+//used to split an attr (s1=s2) into s1 ans s2
+int SplitAttr(string &s1, string &s2, const string &sattrs)
+{
+  return SplitIt(s1,s2,sattrs,'=');
+}
+
+int SplitName(string &s1, string &s2, const string &sattrs)
+{
+  return SplitIt(s1,s2,sattrs,'@');
+}
+
+int SplitAddr(string &s1, string &s2, const string &sattrs)
+{
+  return SplitIt(s1,s2,sattrs,':');
+}
+
+
 
 // the split program, needs testing
 int Split(vector<string>&lst, const string& sinput, const string& seps

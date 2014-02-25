@@ -2,6 +2,8 @@
  **
  ** main for T2.cc
  **
+ ** ./T2 name@port starts a service called name 
+ **  on port 1234 
  ******************************************/
 
 #include <iostream>
@@ -21,6 +23,8 @@ using namespace std;
 #include "T2.h"
 #include "Socket.h"
 
+int SplitName(string &s1, string &s2, const string &sname);
+int SplitAddr(string &s1, string &s2, const string &sname);
 
 tMap Kids;
 
@@ -75,16 +79,87 @@ int runTest(void)
 
 }
 
+void *inputThread(void *data)
+{
+  T2 * t2 = (T2 *)data;
+  sClient *sc = t2->client;
+
+  int rc=1;
+  char buffer[2048];
+  string prompt="\nthings=>";
+  string reply;
+  char * rep;
+
+  cout << " Input  thread  created for {" << t2->name<<"]" << "\n";
+
+  while (rc >0) {
+    ostringstream ocout;
+    prompt="\n"+ t2->name+"=>";
+
+    if ( rc > 0 ) {
+      rc = SendClient(sc->sock, prompt);
+    }
+    rc = RecvClient(sc->sock, buffer, sizeof buffer);
+    string cmd = (string)buffer;
+    cout << " got rc ["<<rc<<"] cmd ["<< cmd<<"]\n";
+    rc = SendClient(sc->sock, cmd);
+  }
+  cout <<"client closed \n";
+  close(sc->sock);  
+  return NULL;
+}
+
+
+// create a thread to process a client
+void input_client(int sock, void *data, struct sockaddr_in *client)
+{
+  T2 * t2 = (T2*)data;
+  sClient *sC = new sClient(sock);
+  t2->client =  sC;
+  int rc = pthread_create(&sC->thr, NULL, inputThread, data);
+   //Clients.push_back(j);
+}
+
 int main(int argc, char *argv[])
 {
+  string s1, s2, s3, s4;
+  string name, port,ipaddr;
 
   if (( argc == 1 ) || ((string)argv[1] == "test"))
-    {
+  {
       runTest();
-    }
+  }
   else
-    {
-      cout << "Nothing to do " << endl;
-    }
+  {
+      if(SplitName(s1,s2,(string)argv[1]) > 1)
+      {
+	  name = s1;
+	  
+	  if (SplitAddr(s3,s4,s2) > 1) 
+	  {
+	      ipaddr = s3 ;
+	      port = s4;
+	      cout << "name ["<<name<<"] starting a connection to host:port ["
+		   <<ipaddr<<":"<< port <<"] \n";
+	  }
+	  else 
+	  {
+	      port = s3;
+	      cout << "name ["<<name<<"] starting a service on port ["<< port <<"] \n";
+              if (! Kids[name]) 
+		{
+		  Kids[name] = new T2(name);
+		}
+	      
+	      socketServer(atoi(port.c_str()), input_client, (void *) Kids[name]);
+	  }
+      }
+      else
+      {
+	  
+	cout << "Nothing to do " << endl;
+      }
+  }
+
   return 0;
 }
