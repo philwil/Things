@@ -81,6 +81,7 @@ int runTest(void)
 
 void *inputThread(void *data)
 {
+#if 0
   T2 * t2 = (T2 *)data;
   sClient *sc = t2->client;
 
@@ -106,6 +107,8 @@ void *inputThread(void *data)
   }
   cout <<"client closed \n";
   close(sc->sock);  
+#endif
+
   return NULL;
 }
 
@@ -113,11 +116,13 @@ void *inputThread(void *data)
 // create a thread to process a client
 void input_client(int sock, void *data, struct sockaddr_in *client)
 {
+#if 0
   T2 * t2 = (T2*)data;
   sClient *sC = new sClient(sock);
   t2->client =  sC;
   int rc = pthread_create(&sC->thr, NULL, inputThread, data);
    //Clients.push_back(j);
+#endif
 }
 
 int StringNewName(string& new_name, string &addr, string &port, const string &sin);

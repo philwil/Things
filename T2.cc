@@ -278,6 +278,7 @@ void *sockThread(void *data)
 
 void myDie(const char *msg) { perror(msg); exit(1); }
 // this sets up a socket and triggers client threads 
+
 int T2::RunServer(string &port)
 {
   int mainsock, clientsock;
@@ -337,7 +338,55 @@ int T2::RunServer(string &port)
     int rc = pthread_create(&t2s->thr, NULL, sockThread, (void*)t2s);
 
   }
-  return sock;
+  return mainsock;
+}
+// sets up the setlink socket
+int T2::SetLink(string &addr, string &port)
+{
+  int mainsock;
+  struct sockaddr_in server, client;
+  struct hostent *serverh;
+  int optval = 1;
+
+  cout << " Running Link to "<<addr<<" on  Port " << port << endl; 
+  /* Create the TCP socket */
+  if ((mainsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+    myDie("Failed to create socket");
+  }
+  /* set the reuse addr option */
+  setsockopt(mainsock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+
+  /* Construct the server sockaddr_in structure */
+  memset(&server, 0, sizeof(server));       /* Clear struct */
+  server.sin_family = AF_INET;                  /* Internet/IP */
+  server.sin_addr.s_addr = htonl(INADDR_ANY);   /* Incoming addr */
+  server.sin_port = htons(atoi(port.c_str()));       /* server port */
+           
+  if(addr.size() > 0)
+    {
+      /* gethostbyname: get the server's DNS entry */
+      serverh = gethostbyname((const char *)addr.c_str());
+      if (serverh == NULL) {
+	fprintf(stderr,"ERROR, no such host as %s\n", (char *)addr.c_str());
+	return 0;
+      }
+      
+      /* build the server's Internet address */
+      bzero((char *) &client, sizeof(client));
+      client.sin_family = AF_INET;
+      bcopy((char *)serverh->h_addr, 
+	    (char *)&client.sin_addr.s_addr, serverh->h_length);
+      client.sin_port = htons(atoi(port.c_str()));
+      
+      /* connect: create a connection with the server */
+      if (connect(mainsock, (struct sockaddr *)&client, sizeof(client)) < 0) 
+	{
+	  printf("ERROR connecting");
+	  return 0;
+	}
+      linksock = mainsock;
+    }
+  return mainsock;
 }
 
 
@@ -375,6 +424,13 @@ T2* operator<<(T2* t2, const string &insrc)
 	    t2->name = new_name;
 	    t2->RunServer(port);  // will spin forever
             // todo send remains
+	    // perhaps we do the remains first ans then run the server
+	  }
+        if (scount == 2)
+	  {
+	    t2->name = new_name;
+	    t2->SetLink(addr, port);  
+            // todo send remains across link
 	    // perhaps we do the remains first ans then run the server
 	  }
     }

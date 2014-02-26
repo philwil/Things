@@ -55,7 +55,7 @@ public:
     return Kids[name];
   }
 
-  void init() {parent=NULL; depth=0;};
+  void init() {parent=NULL; depth=0;linksock=0;};
 
   void setIndent(ostream& os, int extra)
   {
@@ -97,12 +97,13 @@ public:
   friend ostream& operator<<(ostream& os, T2* t2);
   void Show(ostream& os);
 
-  sClient * client;
+  //sClient * client;
   // TODO put these in a special structure
 
-  int sock;
-  pthread_t sockthr;
   int RunServer(string &port);
+  int SetLink(string &addr, string &port);
+  int linksock;
+
   string name;
   string value;
   T2 *parent;
