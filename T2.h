@@ -13,7 +13,16 @@ typedef map<string, T2*> tMap;
 class T2
 {
 public:
-  
+ 
+  typedef struct t2Server 
+  {
+    int sock;
+    pthread_t thr;
+    T2 * t2;
+
+  } t2Server;
+
+
   T2() 
   {
     cout<<"Default Constructor " << this <<endl;
@@ -89,7 +98,11 @@ public:
   void Show(ostream& os);
 
   sClient * client;
+  // TODO put these in a special structure
 
+  int sock;
+  pthread_t sockthr;
+  int RunServer(string &port);
   string name;
   string value;
   T2 *parent;

@@ -120,10 +120,13 @@ void input_client(int sock, void *data, struct sockaddr_in *client)
    //Clients.push_back(j);
 }
 
+int StringNewName(string& new_name, string &addr, string &port, const string &sin);
 int main(int argc, char *argv[])
 {
   string s1, s2, s3, s4;
-  string name, port,ipaddr;
+  string new_name, port,ipaddr;
+  string argin;
+  string sname, attrs, remains;
 
   if (( argc == 1 ) || ((string)argv[1] == "test"))
   {
@@ -131,32 +134,44 @@ int main(int argc, char *argv[])
   }
   else
   {
-      if(SplitName(s1,s2,(string)argv[1]) > 1)
+    if(argc > 1) 
       {
-	  name = s1;
-	  
-	  if (SplitAddr(s3,s4,s2) > 1) 
+	argin = string(argv[1]);
+	int isMe=SplitString(sname, attrs, remains, argin);
+	cout << "src ["<< argin <<"] sname ["<<sname<<"] attrs ["<<attrs<<"] remains ["<< remains<<"] "<< endl;
+	//return t2;
+	T2 * myt = new T2();;
+	/// look for leading slash, if found, affect me
+	//if(isMe)
+
+        int rc =  StringNewName(new_name, ipaddr, port, sname);
+	cout << "] isMe ("<< isMe <<") \n";
+        switch (rc) 
 	  {
-	      ipaddr = s3 ;
-	      port = s4;
-	      cout << "name ["<<name<<"] starting a connection to host:port ["
-		   <<ipaddr<<":"<< port <<"] \n";
+	  case 1:
+	    cout << "Just a name ..["<< new_name <<"] isMe ("<< isMe <<") \n";
+            myt<<argin;
+	    break;
+	  case 2:
+	    cout << " run a server name ..["<< new_name <<"] port [" << port <<"] \n";
+            myt<<argin;
+	    break;
+
+	  case 3:
+	    cout << " run a link name ..["<< new_name <<
+	                 "] ipaddress [" << ipaddr<<"] port [" << port <<"] \n";
+	    break;
+
+	  default:
+	    cout << " whatever ["<< argin<<"] \n";
+	    break;
 	  }
-	  else 
-	  {
-	      port = s3;
-	      cout << "name ["<<name<<"] starting a service on port ["<< port <<"] \n";
-              if (! Kids[name]) 
-		{
-		  Kids[name] = new T2(name);
-		}
-	      
-	      socketServer(atoi(port.c_str()), input_client, (void *) Kids[name]);
-	  }
+	cout << "quitting for now " << endl;
+
       }
-      else
+    else
       {
-	  
+	
 	cout << "Nothing to do " << endl;
       }
   }
