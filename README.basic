@@ -1,15 +1,47 @@
 Revisions
 
+
+2/27/2014
+==========
+1/commands
+  //list
+  //scan
+  //clear
+  //?
+
+  can be cascaded on to a uid
+  for example
+  "a/whole/bunch/of/stuff//list"
+
+2/ unique uid
+  give each object a unique global uid
+  allow direct access by id
+
+    stuff!1234
+    is equivalent to
+    "stuff/a/whole/bunch/of/things"
+
+
+3/ systems
+
+   A system such as gpios / pwms will connect with the main server ans reister all 
+   the associated lower level components
+   the set/get/list/cfg actions will also be put in to the main server 
+   via a shared library.
+
+
+==============
 1/ allow a cascaded message with attrd 
     object << "/some?dir=our&name=foo/funny/string/"
     done 1/20/2014
 
 add back the socket/port concept
-
+in progres
 
 ./t2 mystuff@2345 starts/connects with  the mystuff object at 2345
 ./t2 mystuff@somewhere:2345 creates a link to the mystuff object on somewhere:2345
 ./t2 mystuff "some string"  performs the string pinput to mystuff
+
 
 
 

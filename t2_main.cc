@@ -79,51 +79,7 @@ int runTest(void)
 
 }
 
-void *inputThread(void *data)
-{
-#if 0
-  T2 * t2 = (T2 *)data;
-  sClient *sc = t2->client;
 
-  int rc=1;
-  char buffer[2048];
-  string prompt="\nthings=>";
-  string reply;
-  char * rep;
-
-  cout << " Input  thread  created for {" << t2->name<<"]" << "\n";
-
-  while (rc >0) {
-    ostringstream ocout;
-    prompt="\n"+ t2->name+"=>";
-
-    if ( rc > 0 ) {
-      rc = SendClient(sc->sock, prompt);
-    }
-    rc = RecvClient(sc->sock, buffer, sizeof buffer);
-    string cmd = (string)buffer;
-    cout << " got rc ["<<rc<<"] cmd ["<< cmd<<"]\n";
-    rc = SendClient(sc->sock, cmd);
-  }
-  cout <<"client closed \n";
-  close(sc->sock);  
-#endif
-
-  return NULL;
-}
-
-
-// create a thread to process a client
-void input_client(int sock, void *data, struct sockaddr_in *client)
-{
-#if 0
-  T2 * t2 = (T2*)data;
-  sClient *sC = new sClient(sock);
-  t2->client =  sC;
-  int rc = pthread_create(&sC->thr, NULL, inputThread, data);
-   //Clients.push_back(j);
-#endif
-}
 
 int StringNewName(string& new_name, string &addr, string &port, const string &sin);
 int main(int argc, char *argv[])
