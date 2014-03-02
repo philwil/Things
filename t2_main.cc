@@ -41,7 +41,8 @@ int showKids(ostream& os)
   return 0;
 }
 
-typedef  int (*setup_t)(ostream &os, T2 *t2);
+typedef  int (*setup_t)(ostream &os, T2 *t2, void *data);
+
 int runLibTest(void)
 {
 
@@ -54,7 +55,7 @@ int runLibTest(void)
 
     t2 = Kids["gpios"]=new T2("gpios");
        
-    handle =  dlopen("./libt2gpio.so", RTLD_NOW);
+    handle =  dlopen("./libt2gpios.so", RTLD_NOW);
     if ( !handle) {
       cerr << "dlopen "<< (char *)dlerror()<<"\n";
       return -1;
@@ -67,7 +68,7 @@ int runLibTest(void)
       cout << "dlsym error \n"<<(char *)dlerror()<<"\n";
       return -1;
     }
-    int ret = setup(cout, t2);
+    int ret = setup(cout, t2, NULL);
     cout << " Setup return value [" <<ret<<"] \n";
     if (ret == 0)
       {
@@ -85,7 +86,7 @@ int runTest(void)
   Kids["one"]=new T2("one");
   Kids["two"]=new T2("two");
   Kids["gpios"]=new T2("gpios");
-  Kids["gpios"]->addKid("gpio_1");
+  Kids["gpios"]->AddKid("gpio_1");
 
   Kids["gpios"]->getKid("gpio_1")->addAttr("pin","1");
   Kids["gpios"]->getKid("gpio_1")->addAttr("dir","out");

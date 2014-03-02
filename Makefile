@@ -1,4 +1,4 @@
-all: things t2 libt2gpio.so
+all: things t2 libt2gpios.so
 CPP=g++
 
 Things.o: Things.cc Things.h
@@ -16,7 +16,7 @@ t2_main.o: t2_main.cc T2.h
 T2.o: T2.cc T2.h
 	$(CPP) -g -c -fPIC $<
 
-libt2gpio.so: t2gpio.cc T2.o Socket.o
+libt2gpios.so: t2gpios.cc T2.o Socket.o
 	$(CPP) -o $@ $< T2.o Socket.o -shared -fPIC
 
 things: main.o Things.o Socket.o cJSON.o

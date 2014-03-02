@@ -204,7 +204,7 @@ void T2::Show(ostream &os)
 // a leading slash will shift the focus onto the main Things register
 //
 
-void T2::SetAttrs(string &sattrs)
+void T2::SetAttrs(const string &sattrs)
 {
     vector <string> attrs;
     vector <string>::iterator it;
@@ -217,7 +217,7 @@ void T2::SetAttrs(string &sattrs)
     }
 }
 
-void T2::SetAttr(string &sattrs)
+void T2::SetAttr(const string &sattrs)
 {
     vector <string> subs;
     if(sattrs.size() == 0) return;
@@ -439,15 +439,15 @@ T2* operator<<(T2* t2, const string &insrc)
         {
 	  cout << "adding "<<sname <<" at base \n";
 	  //return t2;
-	    Kids[sname] = new T2(sname);
+	    getMap(Kids, sname);
 	    Kids[sname]->parent = NULL;
 	    Kids[sname]->depth = 0;
 	    myt = Kids[sname];
 	}
 	else
         {
-	  cout << "adding "<<sname <<" to [" << t2->parent->name<<"] \n";
-	    t2->parent->Kids[sname] = new T2(sname);
+	    cout << "adding "<<sname <<" to [" << t2->parent->name<<"] \n";
+	    getMap(Kids, sname);
 	    t2->parent->Kids[sname]->parent = NULL;
 	    t2->parent->Kids[sname]->depth = t2->parent->depth+1;
 	    myt = t2->parent->Kids[sname];
@@ -457,8 +457,8 @@ T2* operator<<(T2* t2, const string &insrc)
     else 
     {
       cout << "adding Kid "<<sname <<" to [" << t2->name<<"] \n";
-        t2->Kids[sname] = new T2(sname);
-	t2->Kids[sname]->parent = t2;
+        t2->getMap(Kids, sname);
+   	t2->Kids[sname]->parent = t2;
 	t2->Kids[sname]->depth = t2->depth+1;
 	myt = t2->Kids[sname];
     }
