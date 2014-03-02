@@ -1,28 +1,29 @@
-all: things t2
-
+all: things t2 libt2gpio.so
+CPP=g++
 
 Things.o: Things.cc Things.h
-	g++ -g -c $<
+	$(CPP) -g -c $<
 
-Socket.o: Socket.cc Socket.h
-	g++ -g -c $<
+Socket.o: Socket.cc Socket.h 
+	$(CPP)	 -g -c $< -fPIC
 
 main.o: main.cc Things.h
-	g++ -g -c $<
+	$(CPP) -g -c $<
 
 t2_main.o: t2_main.cc T2.h
-	g++ -g -c $<
+	$(CPP) -g -c $<
 
 T2.o: T2.cc T2.h
-	g++ -g -c $<
+	$(CPP) -g -c -fPIC $<
 
-
+libt2gpio.so: t2gpio.cc T2.o Socket.o
+	$(CPP) -o $@ $< T2.o Socket.o -shared -fPIC
 
 things: main.o Things.o Socket.o cJSON.o
-	g++ -g -o $@ main.o Things.o Socket.o cJSON.o -lpthread -lm -lrt
+	$(CPP) -g -o $@ main.o Things.o Socket.o cJSON.o -lpthread -lm -lrt
 
 t2:    t2_main.o T2.o
-	g++ -g -o $@ t2_main.o T2.o Socket.o cJSON.o -lpthread -lm -lrt
+	$(CPP) -g -o $@ t2_main.o T2.o Socket.o cJSON.o -lpthread -lm -lrt -ldl
 
 clean:
-	rm -f *.o things t2
+	rm -f *.o *.so things t2

@@ -1,13 +1,17 @@
 Revisions
-
+3/2/2014
+more on module loading
+see below
 
 2/27/2014
 ==========
-1/commands
-  //list
-  //scan
-  //clear
-  //?
+1/commands not yet in place
+  !list
+  !scan
+  !clear
+  !?
+  !load  Load a moduke 
+
 
   can be cascaded on to a uid
   for example
@@ -245,13 +249,50 @@ Thing("gpios/gpio_1")<<"set value=1"
 
 
 
+MOdule loading
+build a module with
+
+
+
+libt2gpio.so: libt2gpio.c
+	$(CC) -o $@ $< -shared -mfdpic
 
 
 
 
 
 
+main code 
+#include <dlfcn.h>
+
+  char * fname = "libt2gpio.so"
+  void * handle =  dlopen(fname, RTLD_NOW);
+  if ( !handle) {
+    fprintf( stderr, "open %s\n", dlerror());
+    _exit(1);
+  }
+  dlerror();  /* clear any current error */
+  t2gpio = dlsym(handle, "register");
+  error = dlerror();
+  if (error != NULL) {
+    fprintf( stderr, "dlsym %s\n", dlerror());
+    _exit(1);
+  }
+  int ret = t2gpio(this_t2)
 
 
+library code
+
+int register( T2 *t2)
+{
+    t2->addAction("scan", gpioScan);
+    t2->addAction("get", gpioGet);
+    t2->addAction("set", gpioSet);
+    t2->addAction("show", gpioShow);
+    t2->addKid("gpio_1?pin=1&dir=input");
+    t2->addKid("gpio_2?pin=2&dir=input");
+    t2->addKid("gpio_3?pin=3&dir=input");
+    return 0;
+} 
 
 

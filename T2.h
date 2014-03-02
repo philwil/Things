@@ -8,7 +8,7 @@ use operator overrides to make it work
 #include "Socket.h"
 class T2;
 typedef map<string, T2*> tMap;
-
+typedef  int (*action_t)(ostream &os, T2 *t2, void *data);
 
 class T2
 {
@@ -76,11 +76,37 @@ public:
     Kids[name]->depth = this->depth+1;
   }
 
+  void addKid(const string name, string attrs)
+  {
+    addKid(name);
+    Kids[name]->SetAttrs(attrs);
+  }
+
+  void addAction(const string name, void *action)
+  {
+    Actions[name] = new T2(name);
+    Actions[name]->parent = this;
+    Actions[name]->depth = this->depth+1;
+    Actions[name]->action = action;
+  }
+
   void addAttr(const string name)
   {
     Attrs[name] = new T2(name);
     Attrs[name]->parent = this;
     Attrs[name]->depth = this->depth;
+  }
+
+  void RunAction(ostream &os, const string &name, void *data)
+  {
+    T2 *act;
+    act = Actions[name];
+    action_t action;
+    if(act->action)
+      {
+	action=(action_t)act->action;
+	action(os,this,data);
+      }
   }
 
   void addAttr(const string name, const string value)
@@ -103,6 +129,7 @@ public:
   int RunServer(string &port);
   int SetLink(string &addr, string &port);
   int linksock;
+  void *action;
 
   string name;
   string value;
@@ -111,6 +138,7 @@ public:
   bool valChanged;
   tMap Attrs;
   tMap Kids;
+  tMap Actions;
 
 };
 
