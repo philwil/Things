@@ -1,6 +1,6 @@
 /*******************************************
  **
- ** main for T2.cc
+ ** gpiolib for T2.cc
  **
  ** ./T2 name@port starts a service called name 
  **  on port 1234 
@@ -17,19 +17,71 @@
 #include <iterator>
 #include <vector>
 #include <unistd.h>
-#include <dlfcn.h>
-#include <unistd.h>
 
+#include <vector>
+#include <map>
+#include <iostream>
+#include <fstream>
+#include <limits>
+#include <map>
+#include <cstring>
+#include <string>
+#include <sstream>
+#include <algorithm>
+#include <iterator>
+#include <vector>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <netdb.h>
 using namespace std;
 
 #include "T2.h"
-#include "Socket.h"
 
-int SplitName(string &s1, string &s2, const string &sname);
-int SplitAddr(string &s1, string &s2, const string &sname);
 
-tMap Kids;
+int gpioScan(ostream& os, T2 *t2, void *data)
+{
+  os << "gpioAction: scanning ["<<t2->name<<"] \n";
+  return 0;
+}
 
+int gpioGet(ostream& os, T2 *t2, void *data)
+{
+  os << "gpioAction: gpio Get ["<<t2->name<<"] \n";
+  return 0;
+}
+
+int gpioSet(ostream& os, T2 *t2, void *data)
+{
+  os << "gpioAction: Set ["<<t2->name<<"] \n";
+  return 0;
+}
+
+int gpioShow(ostream& os, T2 *t2, void *data)
+{
+  os << "gpioAction: Show ["<<t2->name<<"] \n";
+  os << t2;
+  return 0;
+}
+
+extern "C"
+{
+int setup(ostream &os, T2 *t2)
+{
+    t2->addAction("scan", (void*)gpioScan);
+    t2->addAction("get", (void*)gpioGet);
+    t2->addAction("set", (void *)gpioSet);
+    t2->addAction("show", (void *)gpioShow);
+    t2->addKid("gpio_1","?pin=1&dir=input");
+    t2->addKid("gpio_2","?pin=2&dir=input");
+    t2->addKid("gpio_3","?pin=3&dir=input");
+    os<<t2; 
+   return 0;
+} 
+}
+#if 0
 // todo add this as another operator
 int showKids(ostream& os)
 { 
@@ -41,44 +93,6 @@ int showKids(ostream& os)
   return 0;
 }
 
-typedef  int (*setup_t)(ostream &os, T2 *t2, void *data);
-
-int runLibTest(void)
-{
-
-    T2 * t2;
-    void *handle;
-    setup_t setup;
-     // T2->addLib
-
-    cout << "Create a Kid with a Lib " << endl;
-
-    t2 = Kids["gpios"]=new T2("gpios");
-       
-    handle =  dlopen("./libt2gpios.so", RTLD_NOW);
-    if ( !handle) {
-      cerr << "dlopen "<< (char *)dlerror()<<"\n";
-      return -1;
-    }
-
-    dlerror();  /* clear any current error */
-    setup = (setup_t)dlsym(handle, "setup");
-    char * error = (char *)dlerror();
-    if (error != NULL) {
-      cout << "dlsym error \n"<<(char *)dlerror()<<"\n";
-      return -1;
-    }
-    int ret = setup(cout, t2, NULL);
-    cout << " Setup return value [" <<ret<<"] \n";
-    if (ret == 0)
-      {
-	t2->RunAction(cout, "scan", NULL);
-	t2->RunAction(cout, "show", NULL);
-      }
-
-    return 0;
-}
-
 int runTest(void)
 {
 
@@ -86,7 +100,7 @@ int runTest(void)
   Kids["one"]=new T2("one");
   Kids["two"]=new T2("two");
   Kids["gpios"]=new T2("gpios");
-  Kids["gpios"]->AddKid("gpio_1");
+  Kids["gpios"]->addKid("gpio_1");
 
   Kids["gpios"]->getKid("gpio_1")->addAttr("pin","1");
   Kids["gpios"]->getKid("gpio_1")->addAttr("dir","out");
@@ -131,10 +145,6 @@ int main(int argc, char *argv[])
   if (( argc == 1 ) || ((string)argv[1] == "test"))
   {
       runTest();
-  }
-  else if (( argc == 1 ) || ((string)argv[1] == "lib"))
-  {
-      runLibTest();
   }
   else
   {
@@ -182,3 +192,4 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+#endif

@@ -10,7 +10,7 @@
 // add full socket thing
 //   common commands.
 
-
+// 
 // BUGS
 // connection always forwards got it to trap on just one /
 
@@ -25,6 +25,10 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
+#include <unistd.h>
+
+#include <stdio.h>
+#include <dlfcn.h>
 #include <unistd.h>
 
 using namespace std;
@@ -708,6 +712,9 @@ int doCommand(string cmd)
  return 0;
 }
 
+int runLib(void)
+{
+}
 
 int runTest(void)
 {

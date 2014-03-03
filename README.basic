@@ -1,4 +1,7 @@
 Revisions
+3/2/2014
+more on module loading
+see below
 
  back the socket/port concept
 
@@ -7,16 +10,51 @@ Revisions
  any object with @after the name will run as a socket server
 
 
+=======
+2/27/2014
+==========
+1/commands not yet in place
+  !list
+  !scan
+  !clear
+  !?
+  !load  Load a moduke 
+
+
+  can be cascaded on to a uid
+  for example
+  "a/whole/bunch/of/stuff//list"
+
+2/ unique uid
+  give each object a unique global uid
+  allow direct access by id
+
+    stuff!1234
+    is equivalent to
+    "stuff/a/whole/bunch/of/things"
+
+
+3/ systems
+
+   A system such as gpios / pwms will connect with the main server ans reister all 
+   the associated lower level components
+   the set/get/list/cfg actions will also be put in to the main server 
+   via a shared library.
+
+
+==============
+
 1/ allow a cascaded message with attrd 
     object << "/some?dir=our&name=foo/funny/string/"
     done 1/20/2014
 
 add back the socket/port concept
-
+in progres
 
 ./t2 mystuff@2345 starts/connects with  the mystuff object at 2345
 ./t2 mystuff@somewhere:2345 creates a link to the mystuff object on somewhere:2345
 ./t2 mystuff "some string"  performs the string pinput to mystuff
+
 
 
 
@@ -220,13 +258,50 @@ Thing("gpios/gpio_1")<<"set value=1"
 
 
 
+Module loading
+build a module with
+
+
+
+libt2gpio.so: libt2gpio.c
+	$(CC) -o $@ $< -shared -mfdpic
 
 
 
 
 
 
+main code 
+#include <dlfcn.h>
+
+  char * fname = "libt2gpio.so"
+  void * handle =  dlopen(fname, RTLD_NOW);
+  if ( !handle) {
+    fprintf( stderr, "open %s\n", dlerror());
+    _exit(1);
+  }
+  dlerror();  /* clear any current error */
+  t2gpio = dlsym(handle, "register");
+  error = dlerror();
+  if (error != NULL) {
+    fprintf( stderr, "dlsym %s\n", dlerror());
+    _exit(1);
+  }
+  int ret = t2gpio(this_t2)
 
 
+library code
+
+int register( T2 *t2)
+{
+    t2->addAction("scan", gpioScan);
+    t2->addAction("get", gpioGet);
+    t2->addAction("set", gpioSet);
+    t2->addAction("show", gpioShow);
+    t2->addKid("gpio_1?pin=1&dir=input");
+    t2->addKid("gpio_2?pin=2&dir=input");
+    t2->addKid("gpio_3?pin=3&dir=input");
+    return 0;
+} 
 
 
