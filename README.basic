@@ -1,7 +1,37 @@
 Revisions
+3/3/2014
+  would like to add the socket stuff as a library
+
+  perhaps we should now have a master Library of things
+  back to the old isa concept.
+
+  gpio_1@gpios?pin=1&dir=output
+  ^      ^    ^
+  |      |    + -  attributes for this instance
+  |      +-------  get the gpios shared lib
+  +--------------  my name
+
+  foolnk@link?addr=1.2.3.4&port=2334
+  ^      ^    ^
+  |      |    + -  attributes for this instance
+  |      +-------  get the link shared lib
+  +--------------  my name
+
+  foosrv@serv?addr=1.2.3.4&port=2334
+  ^      ^    ^
+  |      |    + -  attributes for this instance
+  |      +-------  get the serv shared lib
+  +--------------  my name
+
+   a - Master Lib Map for objects
+   b - Create copy using base atributes and overlay attributes
+   c - Create Action Link to base object Actions
+  
+
 3/2/2014
 more on module loading
 see below
+
 
  back the socket/port concept
 
