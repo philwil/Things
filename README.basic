@@ -1,5 +1,12 @@
 Revisions
 
+ back the socket/port concept
+
+
+./t2 mystuff@2345 starts/connects with  the mystuff object at 2345
+ any object with @after the name will run as a socket server
+
+
 1/ allow a cascaded message with attrd 
     object << "/some?dir=our&name=foo/funny/string/"
     done 1/20/2014
