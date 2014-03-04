@@ -76,17 +76,36 @@ public:
 
 
 
+  T2 *getMap(tMap &tmap, const string &name, bool create)
+  {
+    if (!create)
+      {
+	tMap::iterator iter;
+	iter=tmap.find(name);
+	if (iter != tmap.end())
+	  return (iter->second);
+	else
+	  return NULL;
+      }
+    else
+      { 
+	if (!tmap[name])
+	  {
+	    tmap[name] = new T2(name);
+	    T2 *t2 = tmap[name];
+	    t2->parent = this;
+	    t2->depth = this->depth+1;
+	  }
+	return tmap[name];
+      }
+  }
+
+
   T2 *getMap(tMap &tmap, const string &name)
   {
-    if (!tmap[name])
-      {
-	tmap[name] = new T2(name);
-	T2 *t2 = tmap[name];
-	t2->parent = this;
-	t2->depth = this->depth+1;
-      }
-    return tmap[name];
+    return getMap(tmap, name, true);
   }
+
 
   T2* getKid(const string &name)
   {
@@ -155,11 +174,11 @@ public:
     T2 *act;
     if (t2_type)
       {
-	act = getMap(t2_type->Actions, name); ;
+	act = getMap(t2_type->Actions, name, false);
       } 
     else
       {
-	act = getMap(Actions, name); ;
+	act = getMap(Actions, name, false); 
       }
     action_t action;
     if(act->action)
