@@ -66,7 +66,14 @@ public:
   }
 
 
-  void init() {parent=NULL; depth=0;linksock=0;};
+  void init() {
+    parent=NULL; 
+    depth=0;
+    linksock=0;
+    t2_type=NULL;
+    action = NULL;
+  };
+
 
 
   T2 *getMap(tMap &tmap, const string &name)
@@ -74,6 +81,9 @@ public:
     if (!tmap[name])
       {
 	tmap[name] = new T2(name);
+	T2 *t2 = tmap[name];
+	t2->parent = this;
+	t2->depth = this->depth+1;
       }
     return tmap[name];
   }
@@ -99,11 +109,10 @@ public:
   void AddKid(const string &kname)
   {
     T2 *t2 = getMap(Kids, kname); 
-    t2->parent = this;
-    t2->depth = this->depth+1;
+
   }
 
-  void AddKida(const string &kname, const string &attrs)
+  void AddKid(const string &kname, const string &attrs)
   {
     AddKid(kname);
     Kids[kname]->SetAttrs(attrs);
@@ -112,16 +121,12 @@ public:
   void AddAction(const string &name, void *action)
   {
     T2 *t2 = getMap(Actions, name); 
-    t2->parent = this;
-    t2->depth = this->depth+1;
     t2->action = action;
   }
 
   T2 *AddAction(const string &name)
   {
     T2 *t2 = getMap(Actions, name); 
-    t2->parent = this;
-    t2->depth = this->depth+1;
     return t2;
   }
 
@@ -129,14 +134,33 @@ public:
   void addAttr(const string &name)
   {
     T2 *t2 = getMap(Attrs, name); 
-    t2->parent = this;
     t2->depth = this->depth;
   }
+
+  int copyAttrs(ostream &os, T2 *t2_t)
+  {
+    int rc = 0;
+    tMap::iterator iter;
+    for (iter=t2_t->Attrs.begin(); iter != t2_t->Attrs.end(); ++iter)
+      {
+	addAttr(iter->first,(iter->second)->value);
+	++rc;
+      }
+    return rc;
+  }
+
 
   void RunAction(ostream &os, const string &name, void *data)
   {
     T2 *act;
-    act = getMap(Actions, name); ;
+    if (t2_type)
+      {
+	act = getMap(t2_type->Actions, name); ;
+      } 
+    else
+      {
+	act = getMap(Actions, name); ;
+      }
     action_t action;
     if(act->action)
       {
@@ -152,7 +176,7 @@ public:
     valChanged = true;
   }
 
-  int addLib(ostream &os, string &name)
+  int addFcn(ostream &os, string &name)
   {
     string dlname = "./libt2"+name+".so";
     void * handle;
@@ -199,8 +223,9 @@ public:
   bool valChanged;
   tMap Attrs;
   tMap Kids;
-  tMap Actions;
-
+  tMap Actions;  // if we have local actions
+  T2 * t2_type;     // type for generic type actions
+  
 };
 
 int SplitString(string &name, string &attrs, string&remains, string &src);

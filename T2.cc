@@ -37,14 +37,14 @@ using namespace std;
 // we will loose this soon
 extern tMap Kids;
 
-//used to split an attr (s1=s2) into s1 ans s2
+//used to split an attr (s1=s2) into s1 and s2
 int SplitIt(string &s1, string &s2, const string &sattrs, const char &c)
 {
     int rc = 0;
     if(sattrs.size() > 0) 
     {
 	size_t mid;
-	mid = sattrs.find(c,0);
+	mid = sattrs.find(c, 0);
 	if(string::npos != mid)
 	{
 	    s1=sattrs.substr(0,mid);
@@ -71,11 +71,50 @@ int SplitName(string &s1, string &s2, const string &sattrs)
   return SplitIt(s1,s2,sattrs,'@');
 }
 
+// returns 0 for just a name ,1 for lib 2 for cmd
+int DecodeName(string &sname, string &sfcn, string &sact, string &sattrs, const string& sin)
+{
+  size_t fcn = sin.find('@', 0);
+  size_t cmd = sin.find('!', 0);
+  size_t atr = sin.find('?', 0);
+  int rc = 0;
+  string s2;
+
+  if(string::npos != fcn)
+    {
+      sname=sin.substr(0, fcn);
+      s2=sin.substr(fcn+1); // still have to find any attrs in here
+      SplitIt(sfcn, sattrs, s2, '?');
+      rc = 1;
+    }
+  else if(string::npos != cmd)
+    {
+      sname=sin.substr(0, cmd);
+      s2=sin.substr(cmd+1); // still have to find any attrs in here
+      SplitIt(sact,sattrs, s2, '?');
+      rc = 2;
+    }
+  else 
+    {
+      sname = sin;
+    }
+
+  return rc;
+}
+
+
 int SplitAddr(string &s1, string &s2, const string &sattrs)
 {
   return SplitIt(s1,s2,sattrs,':');
 }
 
+// make this much more generic
+// name@fcn[?attrs&stuff]
+// name!action[?attrs&stuff]
+// name@fcn inherits the actions from fcn
+// name!action run the action
+// this crap can die
+//
 // rc = 1 just a name
 // rc = 2 name + port            we are a server
 // rc = 3 name + address + port  we are a link
@@ -94,6 +133,10 @@ int StringNewName(string& new_name, string &addr, string &port, const string &si
     }
   return rc;
 }
+
+// 
+//
+
 
 
 // the split program, needs testing
@@ -458,8 +501,6 @@ T2* operator<<(T2* t2, const string &insrc)
     {
       cout << "adding Kid "<<sname <<" to [" << t2->name<<"] \n";
         t2->getMap(Kids, sname);
-   	t2->Kids[sname]->parent = t2;
-	t2->Kids[sname]->depth = t2->depth+1;
 	myt = t2->Kids[sname];
     }
     cout << " ****myt name ["<< myt->name << "] attrs ["<<attrs<<"] size "<< attrs.size()<<"\n";

@@ -27,8 +27,14 @@ using namespace std;
 
 int SplitName(string &s1, string &s2, const string &sname);
 int SplitAddr(string &s1, string &s2, const string &sname);
+// returns 0 for just a name ,1 for lib 2 for cmd
+int DecodeName(string &sname, string &sfcn, string &sact, string &sattrs, const string& sin);
+
+int StringNewName(string& new_name, string &addr, string &port, const string &sin);
+
 
 tMap Kids;
+tMap Types;
 
 // todo add this as another operator
 int showKids(ostream& os)
@@ -43,6 +49,70 @@ int showKids(ostream& os)
 
 typedef  int (*setup_t)(ostream &os, T2 *t2, void *data);
 
+
+int runLibTest2(const string& sin)
+{
+  T2 *t2;
+  string sname;
+  string sact;
+  string stype;
+  string sattrs;
+  
+  int rc = DecodeName(sname, stype, stype, sattrs, sin);
+  
+  cout <<" RC ("<<rc<<")\n";
+  cout << " name ["<<sname<<"] \n";
+  cout << " type ["<<stype<<"] \n";
+  cout << " action ["<<sact<<"] \n";
+  cout << " attrs ["<<sattrs<<"] \n";
+
+  t2=new T2(sname);
+
+  if (stype != "") 
+    {
+      T2 *t2_t;
+
+      if (!Types[stype])
+	{
+	  cout << " Creating Type [" << stype <<"]\n";
+	  string dlname = "./libt2"+stype+".so";
+	  void * handle;
+	  action_t setup;
+	  Types[stype] = new T2(stype);
+	  t2_t = Types[stype];
+
+	  handle =  dlopen(dlname.c_str(), RTLD_NOW);
+	  if (!handle) 
+	    {
+	      cout << "dlopen "<< (char *)dlerror()<<"\n";
+	      return -1;
+	    }
+
+	  dlerror();  /* clear any current error */
+	  setup = (action_t)dlsym(handle, "setup");
+	  char *error = (char *)dlerror();
+	  if (error != NULL) {
+	    cout << "dlsym error \n"<<(char *)dlerror()<<"\n";
+	    return -1;
+	  }
+	  int ret = setup(cout, t2_t, NULL);
+	}
+      t2_t =  Types[stype];
+      cout << t2_t;
+      t2->copyAttrs(cout, t2_t); 
+      t2->t2_type = t2_t;
+    }
+
+  t2->SetAttrs(sattrs);
+
+  cout << t2;
+  t2->RunAction(cout, "scan", NULL);
+
+
+  return 0;
+
+}
+
 int runLibTest(void)
 {
 
@@ -53,7 +123,7 @@ int runLibTest(void)
 
     cout << "Create a Kid with a Lib " << endl;
 
-    t2 = Kids["gpios"]=new T2("gpios");
+    t2 = Types["gpios"]=new T2("gpios");
        
     handle =  dlopen("./libt2gpios.so", RTLD_NOW);
     if ( !handle) {
@@ -119,8 +189,6 @@ int runTest(void)
 
 }
 
-
-int StringNewName(string& new_name, string &addr, string &port, const string &sin);
 int main(int argc, char *argv[])
 {
   string s1, s2, s3, s4;
@@ -135,6 +203,16 @@ int main(int argc, char *argv[])
   else if (( argc == 1 ) || ((string)argv[1] == "lib"))
   {
       runLibTest();
+  }
+  else if (( argc == 1 ) || ((string)argv[1] == "name"))
+  {
+    if (argc > 2) {
+      runLibTest2((string)argv[2]);
+    }
+    if (argc > 3) {
+      runLibTest2((string)argv[3]);
+    }
+    return 0;
   }
   else
   {
