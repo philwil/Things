@@ -287,152 +287,6 @@ void T2::SetAttr(const string &sattrs)
 }
 
 
-void *sockThread(void *data)
-{
-
-  struct T2::t2Server *t2s = (struct T2::t2Server *)data;
-
-  T2 *t2 = t2s->t2;
-  int rc=1;
-  char buffer[2048];
-  string prompt="\nthings=>";
-  string reply;
-  char * rep;
-  int mysock = t2s->sock;
-
-  cout << " Input  thread  created for {" << t2->name<<"]" << "\n";
-
-  while (rc >0) {
-    ostringstream ocout;
-    prompt="\n"+ t2->name+"=>";
-
-    if ( rc > 0 ) {
-      rc = SendClient(mysock, prompt);
-    }
-    rc = RecvClient(mysock, buffer, sizeof buffer);
-    string cmd = (string)buffer;
-    cout << " got rc ["<<rc<<"] cmd ["<< cmd<<"]\n";
-    rc = SendClient(mysock, cmd);
-  }
-  cout <<"client closed \n";
-  close(mysock);  
-  delete t2s;
-  return NULL;
-}
-
-
-// this sets up a socket and triggers client threads 
-
-int T2::RunServer(string &port)
-{
-  int mainsock, clientsock;
-  struct sockaddr_in server;
-  struct hostent *serverh;
-  int optval = 1;
-
-  cout << " Running Server on  Port " << port << endl; 
-  /* Create the TCP socket */
-  if ((mainsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-    myDie("Failed to create socket");
-  }
-  /* set the reuse addr option */
-  setsockopt(mainsock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-
-  /* Construct the server sockaddr_in structure */
-  memset(&server, 0, sizeof(server));       /* Clear struct */
-  server.sin_family = AF_INET;                  /* Internet/IP */
-  server.sin_addr.s_addr = htonl(INADDR_ANY);   /* Incoming addr */
-  server.sin_port = htons(atoi(port.c_str()));       /* server port */
-           
-
-  /* Bind the server socket */
-  if (bind(mainsock, (struct sockaddr *) &server,
-	   sizeof(server)) < 0) {
-    myDie("Failed to bind the server port");
-
-    // cout << " Failed to bind to  Port " << port << endl; 
-  }
-
-  /* Listen on the server socket */
-  if (listen(mainsock, /*MAXPENDING*/ 5) < 0) {
-    myDie("Failed to listen on server socket");
-  }
-  
-  /* Run until cancelled */
-  while (1) {
-    struct sockaddr_in *client;
-    unsigned int clientlen = sizeof(*client);
-    client = (struct sockaddr_in *)malloc(clientlen);
-    /* Wait for client connection */
-    if ((clientsock =
-	 accept(mainsock, (struct sockaddr *) client,
-		&clientlen)) < 0) {
-      myDie("Failed to accept client connection");
-    }
-    //    fprintf(stdout, "Client connected: %s\n",
-    //	    inet_ntoa(client->sin_addr));
-    /* hand over operation to the client call back */
-
-    //HandleClient(clientsock, data, client);
-    t2Server *t2s = new t2Server;
-    t2s->sock = clientsock;
-    t2s->t2=this;
-
-    //sock = clientsock;
-    int rc = pthread_create(&t2s->thr, NULL, sockThread, (void*)t2s);
-
-  }
-  return mainsock;
-}
-// sets up the setlink socket
-int T2::SetLink(string &addr, string &port)
-{
-  int mainsock;
-  struct sockaddr_in server, client;
-  struct hostent *serverh;
-  int optval = 1;
-
-  cout << " Running Link to "<<addr<<" on  Port " << port << endl; 
-  /* Create the TCP socket */
-  if ((mainsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-    myDie("Failed to create socket");
-  }
-  /* set the reuse addr option */
-  setsockopt(mainsock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-
-  /* Construct the server sockaddr_in structure */
-  memset(&server, 0, sizeof(server));       /* Clear struct */
-  server.sin_family = AF_INET;                  /* Internet/IP */
-  server.sin_addr.s_addr = htonl(INADDR_ANY);   /* Incoming addr */
-  server.sin_port = htons(atoi(port.c_str()));       /* server port */
-           
-  if(addr.size() > 0)
-    {
-      /* gethostbyname: get the server's DNS entry */
-      serverh = gethostbyname((const char *)addr.c_str());
-      if (serverh == NULL) {
-	fprintf(stderr,"ERROR, no such host as %s\n", (char *)addr.c_str());
-	return 0;
-      }
-      
-      /* build the server's Internet address */
-      bzero((char *) &client, sizeof(client));
-      client.sin_family = AF_INET;
-      bcopy((char *)serverh->h_addr, 
-	    (char *)&client.sin_addr.s_addr, serverh->h_length);
-      client.sin_port = htons(atoi(port.c_str()));
-      
-      /* connect: create a connection with the server */
-      if (connect(mainsock, (struct sockaddr *)&client, sizeof(client)) < 0) 
-	{
-	  printf("ERROR connecting");
-	  return 0;
-	}
-      linksock = mainsock;
-    }
-  return mainsock;
-}
-
 
 // revise the isBrother concept to mean isMe
 // this means that the /name@addr:port
@@ -466,14 +320,14 @@ T2* operator<<(T2* t2, const string &insrc)
         if (scount == 2)
 	  {
 	    t2->name = new_name;
-	    t2->RunServer(port);  // will spin forever
+	    //t2->RunServer(port);  // will spin forever
             // todo send remains
 	    // perhaps we do the remains first ans then run the server
 	  }
         if (scount == 2)
 	  {
 	    t2->name = new_name;
-	    t2->SetLink(addr, port);  
+	    //t2->SetLink(addr, port);  
             // todo send remains across link
 	    // perhaps we do the remains first ans then run the server
 	  }

@@ -19,7 +19,6 @@ use operator overrides to make it work
 #include <dlfcn.h>
 #include <stdio.h>
 
-#include "Socket.h"
 using namespace std;
 
 void myDie(const char *msg);
@@ -35,14 +34,6 @@ class T2
 {
 public:
  
-  typedef struct t2Server 
-  {
-    int sock;
-    pthread_t thr;
-    T2 * t2;
-
-  } t2Server;
-
 
   T2() 
   {
@@ -75,7 +66,6 @@ public:
   void init() {
     parent=NULL; 
     depth=0;
-    linksock=0;  // TO GO
     t2_type=NULL;
     action = NULL;
     t2Sock = NULL;
@@ -237,9 +227,7 @@ public:
   //sClient * client;
   // TODO put these in a special structure
 
-  int RunServer(string &port);
-  int SetLink(string &addr, string &port);
-  int linksock;
+  //  int linksock;
   void *action;
 
   string name;
