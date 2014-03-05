@@ -1,5 +1,7 @@
 Revisions
 3/4/2014
+!idea allow tiered list of commands
+
   got the socket lib set up and Socket.o removed from t2 and t2_main.
   this is really simple to work..
 
