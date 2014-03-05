@@ -33,6 +33,7 @@ cout << mything  to get a listing
 using namespace std;
 
 #include "T2.h"
+void myDie(const char *msg) { perror(msg); exit(1); }
 
 // we will loose this soon
 extern tMap Kids;
@@ -319,7 +320,7 @@ void *sockThread(void *data)
   return NULL;
 }
 
-void myDie(const char *msg) { perror(msg); exit(1); }
+
 // this sets up a socket and triggers client threads 
 
 int T2::RunServer(string &port)

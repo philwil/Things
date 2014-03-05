@@ -4,6 +4,7 @@ use operator overrides to make it work
 ******************************************/
 #ifndef _T2__H
 #define _T2__H
+
 #include <iostream>
 #include <limits>
 #include <map>
@@ -16,14 +17,19 @@ use operator overrides to make it work
 #include <vector>
 #include <unistd.h>
 #include <dlfcn.h>
-#include <unistd.h>
+#include <stdio.h>
 
 #include "Socket.h"
 using namespace std;
 
+void myDie(const char *msg);
+
+
 class T2;
 typedef map<string, T2*> tMap;
 typedef  int (*action_t)(ostream &os, T2 *t2, void *data);
+
+
 
 class T2
 {
@@ -69,9 +75,10 @@ public:
   void init() {
     parent=NULL; 
     depth=0;
-    linksock=0;
+    linksock=0;  // TO GO
     t2_type=NULL;
     action = NULL;
+    t2Sock = NULL;
   };
 
 
@@ -244,7 +251,8 @@ public:
   tMap Kids;
   tMap Actions;  // if we have local actions
   T2 * t2_type;     // type for generic type actions
-  
+  void *t2Sock;
+
 };
 
 int SplitString(string &name, string &attrs, string&remains, string &src);
