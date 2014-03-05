@@ -1,4 +1,18 @@
 Revisions
+3/4/2014
+  got the socket lib set up and Socket.o removed from t2 and t2_main.
+  this is really simple to work..
+
+       ./t2 name fooserv@tcps?port=5566 fooserv!serv
+
+  next need to get the ! commands working.
+
+  telnet 127.0.0.1 5566
+  fooserv=> gpio_1@gpios?pin=1&dir=output
+  fooserv=> gpio_1?value=1
+  fooserv=> gpio_1?value
+      output {"fooserv":{"gpio_1":{"value":"1"}}}
+
 3/3/2014
   would like to add the socket stuff as a library
 
@@ -11,13 +25,13 @@ Revisions
   |      +-------  get the gpios shared lib
   +--------------  my name
 
-  foolnk@link?addr=1.2.3.4&port=2334
+  foolnk@tcps?addr=1.2.3.4&port=2334   foolnk!link
   ^      ^    ^
   |      |    + -  attributes for this instance
   |      +-------  get the link shared lib
   +--------------  my name
 
-  foosrv@serv?addr=1.2.3.4&port=2334
+  foosrv@tcps?addr=1.2.3.4&port=2334 foosrv!serv
   ^      ^    ^
   |      |    + -  attributes for this instance
   |      +-------  get the serv shared lib
