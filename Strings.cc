@@ -10,17 +10,10 @@ int DecodeName(string &sname, string &slib, string &sact, string &satr, const st
   string delims ="!@?";
   string samp = sin;
   size_t found = 0;
-  //samp.find_first_of(delims);
   char skey;
   int rc = 0;
-  //  if (found==string::npos)
-  // {
-  //  sname=samp;
-  //  return rc;
-  //}
-  //sname=samp.substr(0,found);
   bool done = false;
-  skey = '/';
+  skey = '/';  // default first key
   while((delims.size() > 0) && ! done)
     {
       rc++;
