@@ -177,6 +177,10 @@ public:
       {
 	act = getMap(Actions, name, false); 
       }
+    if (!act) {
+      os << "Error : action ["<<name<<"] not found \n";
+      return;
+    }
     action_t action;
     if(act->action)
       {

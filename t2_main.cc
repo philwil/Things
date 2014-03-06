@@ -27,6 +27,9 @@ using namespace std;
 
 int SplitName(string &s1, string &s2, const string &sname);
 int SplitAddr(string &s1, string &s2, const string &sname);
+
+int setup(ostream &os, T2 *t2 , void *data);
+
 // returns 0 for just a name ,1 for lib 2 for cmd
 int DecodeName(string &sname, string &sfcn, string &sact, string &sattrs, const string& sin);
 
@@ -55,31 +58,32 @@ int runLibTest2(const string& sin)
   T2 *t2;
   string sname;
   string sact;
-  string stype;
-  string sattrs;
+  string slib;
+  string satr;
   
-  int rc = DecodeName(sname, stype, stype, sattrs, sin);
+  int rc = DecodeName(sname, slib, sact, satr, sin);
   
   cout <<" RC ("<<rc<<")\n";
   cout << " name ["<<sname<<"] \n";
-  cout << " type ["<<stype<<"] \n";
+  cout << " lib ["<<slib<<"] \n";
   cout << " action ["<<sact<<"] \n";
-  cout << " attrs ["<<sattrs<<"] \n";
-
+  cout << " attrs ["<<satr<<"] \n";
+  return 0;
   t2=new T2(sname);
+  setup(cout, t2, NULL);
 
-  if (stype != "") 
+  if ( 0 &&(slib != "")) 
     {
       T2 *t2_t;
 
-      if (!Types[stype])
+      if (!Types[slib])
 	{
-	  cout << " Creating Type [" << stype <<"]\n";
-	  string dlname = "./libt2"+stype+".so";
+	  cout << " Creating Type [" << slib <<"]\n";
+	  string dlname = "./libt2"+slib+".so";
 	  void * handle;
 	  action_t setup;
-	  Types[stype] = new T2(stype);
-	  t2_t = Types[stype];
+	  Types[slib] = new T2(slib);
+	  t2_t = Types[slib];
 
 	  handle =  dlopen(dlname.c_str(), RTLD_NOW);
 	  if (!handle) 
@@ -97,16 +101,20 @@ int runLibTest2(const string& sin)
 	  }
 	  int ret = setup(cout, t2_t, NULL);
 	}
-      t2_t =  Types[stype];
+      t2_t =  Types[slib];
       cout << t2_t;
       t2->copyAttrs(cout, t2_t); 
       t2->t2_type = t2_t;
     }
 
-  t2->SetAttrs(sattrs);
+  cout << " Setting attrs \n";
+  t2->SetAttrs(satr);
 
-  cout << t2;
-  t2->RunAction(cout, "scan", NULL);
+  cout << " T2 show \n";
+  //cout << t2;
+  cout << " running scan action \n";
+
+  //t2->RunAction(cout, "list", NULL);
 
 
   return 0;
@@ -187,6 +195,31 @@ int runTest(void)
   int rc = SplitString(name, attrs, remains, src);
   cout <<  " name["<<name<<"] attrs ["<<attrs<<"] remains ["<<remains<<"] src ["<<src<<"]"<<endl;
 
+}
+
+int mainHelp(ostream& os, T2 *t2, void *data)
+{
+  os << "mainAction: help ["<<t2->name<<"] \n";
+  return 0;
+}
+
+int mainList(ostream& os, T2 *t2, void *data)
+{
+  os << "mainAction: list ["<<t2->name<<"] \n";
+  os << t2;
+  return 0;
+}
+
+
+int setup(ostream &os, T2 *t2 , void *data)
+{
+  t2->AddAction("help", (void*)mainHelp);
+  //t2->AddAction("scan",  (void*)tcpScan);
+  //t2->AddAction("get",   (void*)tcpGet);
+  //t2->AddAction("set",   (void *)tcpSet);
+  t2->AddAction("list",  (void *)mainList);
+  //    t2->SetAttrs((string)"?port=5566");
+  return 0;
 }
 
 int main(int argc, char *argv[])

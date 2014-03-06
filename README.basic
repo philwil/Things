@@ -1,4 +1,17 @@
 Revisions
+3/5/2014 TIme to set up commands
+We can preload some basics and allow libs to extend them.
+
+basic commands
+!help   - show commands
+!list   - tree view of objects 
+!jlist  - json view
+!read <filename>  read config from a file
+!write <filename> write config to a file
+!home take the tree back to base.
+
+
+
 3/4/2014
 !idea allow tiered list of commands
 
