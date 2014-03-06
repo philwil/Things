@@ -9,35 +9,44 @@ int DecodeName(string &sname, string &slib, string &sact, string &satr, const st
 {
   string delims ="!@?";
   string samp = sin;
-  size_t found = samp.find_first_of(delims);
+  size_t found = 0;
+  //samp.find_first_of(delims);
   char skey;
   int rc = 0;
-  if (found==string::npos)
-    {
-      sname=samp;
-      return rc;
-    }
-  sname=samp.substr(0,found);
+  //  if (found==string::npos)
+  // {
+  //  sname=samp;
+  //  return rc;
+  //}
+  //sname=samp.substr(0,found);
   bool done = false;
+  skey = '/';
   while((delims.size() > 0) && ! done)
     {
       rc++;
-      skey=samp[found];
-      delims.erase(delims.find(skey),1);
-      samp.erase(0,found);
+      if(found > 0)
+	{
+	  skey=samp[found];
+	  delims.erase(delims.find(skey),1);
+	  samp.erase(0,found);
+	}
       found=samp.find_first_of(delims);
       cout << "rc ("<<rc<<") samp now ["<<samp<<"] delims ["<<delims<<"] key["<<skey<<"]\n";
+      if(skey == '/')
+	{
+	  sname=samp.substr(0, found);
+	}
       if(skey == '@')
 	{
-	  slib=samp.substr(0,found);
+	  slib=samp.substr(0, found);
 	}
       if(skey == '!')
 	{
-	  sact=samp.substr(0,found);
+	  sact=samp.substr(0, found);
 	}
       if(skey == '?')
 	{
-	  satr=samp.substr(0,found);
+	  satr=samp.substr(0, found);
 	}
       done =(found==string::npos);
     }
