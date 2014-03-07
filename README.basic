@@ -3,7 +3,9 @@ Revisions
 	 Moved a lof of junk into Strings.cc
 	 Cleaned up tcp lib no longer needs sockets
          Created nice DecodeDelims
-
+         Need overall splitter
+         this + rest done
+       debug setattr
 
 3/5/2014 Time to set up commands
 We can preload some basics and allow libs to extend them.

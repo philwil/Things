@@ -12,8 +12,6 @@ also
 cout << mything  to get a listing
 ***********************************************/
 
-#include <vector>
-#include <map>
 #include <iostream>
 #include <fstream>
 #include <limits>
@@ -24,6 +22,7 @@ cout << mything  to get a listing
 #include <algorithm>
 #include <iterator>
 #include <vector>
+
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
@@ -88,12 +87,16 @@ void T2::SetAttrs(const string &sattrs)
 
 void T2::SetAttr(const string &sattrs)
 {
-    vector <string> subs;
+  //    vector <string> subs;
     if(sattrs.size() == 0) return;
     //cout <<" sattrs size ("<<sattrs<<")("<<sattrs.size()<<")\n";
-    string s1,s2;
-    SplitAttr(s1, s2, sattrs);
-    cout <<" s1 ["<<s1<<"] s2 [" << s2 <<"]\n"; 
+    string sat, s1,s2;
+    sat = sattrs;
+    if ((sat[0] == '?') || (sat[0]=='&'))  
+      sat.erase(0,1);
+    SplitAttr(s1, s2, sat);
+    cout <<" SetAttr sattrs ["<<sattrs<<"] sat [" << sat <<"]\n"; 
+    cout <<" SetAttr s1 ["<<s1<<"] s2 [" << s2 <<"]\n"; 
     //return ;
 
     if(!Attrs[s1])

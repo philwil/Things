@@ -105,6 +105,9 @@ int tcpServ(ostream& os, T2 *t2, void *data)
   string pstring;
   int port;
   // TODO handle errors here
+  if(t2->Attrs.find("port") == t2->Attrs.end())
+    return -1;
+
   pstring = t2->Attrs["port"]->value;
   port=atoi(pstring.c_str());
 
@@ -167,6 +170,12 @@ int tcpLink(ostream& os, T2 *t2, void *data)
   struct sockaddr_in server;
   struct hostent *serverh;
   int optval = 1;
+  // TODO handle errors here
+  if(t2->Attrs.find("port") == t2->Attrs.end())
+    return -1;
+  if(t2->Attrs.find("address") == t2->Attrs.end())
+    return -1;
+
   t2Sock *t2s = new t2Sock;
   memset((void *)t2s, 0, sizeof(*t2s));           /* Clear struct */
 
@@ -174,13 +183,11 @@ int tcpLink(ostream& os, T2 *t2, void *data)
   string astring;
   int port;
 
-  // TODO handle errors here
   pstring = t2->Attrs["port"]->value;
   port=atoi(pstring.c_str());
   astring = t2->Attrs["address"]->value;
 
   os << " Running Link to ["<< astring<<":"<<port<<"] \n";
-
 
   /* Create the TCP socket */
   if ((t2s->sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
@@ -224,7 +231,6 @@ int tcpLink(ostream& os, T2 *t2, void *data)
   return 0;
 }
 
-
 int tcpScan(ostream& os, T2 *t2, void *data)
 {
   os << "tcpAction: scanning ["<<t2->name<<"] \n";
@@ -260,7 +266,7 @@ extern "C"
     t2->AddAction("!get",   (void*)tcpGet);
     t2->AddAction("!set",   (void *)tcpSet);
     t2->AddAction("!show",  (void *)tcpShow);
-    t2->SetAttrs((string)"?port=5566");
+    t2->SetAttr((string)"?port=5566");
     return 0;
   } 
 }

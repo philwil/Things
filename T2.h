@@ -221,7 +221,7 @@ public:
   }
 
 
-  void SetAttr(const string &sattrs);
+
   void SetAttrs(const string &sattrs);
 
   friend T2* operator<<(T2* t2, const string &name);
@@ -244,6 +244,9 @@ public:
   tMap Actions;  // if we have local actions
   T2 * t2_type;     // type for generic type actions
   void *t2Sock;
+  void SetAttr(const string &sattrs); 
+ private:
+  int foo;
 
 };
 
