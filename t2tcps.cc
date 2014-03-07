@@ -13,7 +13,6 @@
  ******************************************/
 
 #include <iostream>
-#include <limits>
 #include <map>
 #include <cstring>
 #include <string>
@@ -256,11 +255,11 @@ extern "C"
 {
   int setup(ostream &os, T2 *t2 , void *data)
   {
-    t2->AddAction("tserv", (void*)tcpServ);
-    t2->AddAction("scan",  (void*)tcpScan);
-    t2->AddAction("get",   (void*)tcpGet);
-    t2->AddAction("set",   (void *)tcpSet);
-    t2->AddAction("show",  (void *)tcpShow);
+    t2->AddAction("!tserv", (void*)tcpServ);
+    t2->AddAction("!scan",  (void*)tcpScan);
+    t2->AddAction("!get",   (void*)tcpGet);
+    t2->AddAction("!set",   (void *)tcpSet);
+    t2->AddAction("!show",  (void *)tcpShow);
     t2->SetAttrs((string)"?port=5566");
     return 0;
   } 

@@ -39,6 +39,26 @@ int DecodeDelims(sMap& sMap, const string &dls, const string& sin)
   return rc;
 }
 
+// Simply splits a string up into cmd and rest 
+int DecodeCommand(string &scmd, string &srest, const string &delims, const string &sin)
+{
+  size_t found;
+  int rc = 0;
+  found=sin.find_first_of(delims,1);
+  if (found == string::npos)
+    {
+    scmd = sin;
+    }
+  else
+    {
+      rc++;
+      scmd=sin.substr(0,found);
+      srest=sin.substr(found);
+    }
+  return rc;
+}
+
+
 void TestDecodeName(const string &sin)
 {
   string dlims ="!@?";
@@ -53,6 +73,20 @@ void TestDecodeName(const string &sin)
   for ( ; iter != sMap.end(); ++iter) {
     cout << "["<<iter->first<<"] ==> ["<< iter->second <<"] \n";
   }
+  return;
+}
+
+void TestDecodeCmd(const string &sin)
+{
+  string scmd;
+  string srest;
+  int rc = DecodeCommand(scmd,srest,"/", sin);
+  cout << "sin  ["<<sin<<"] ======\n";
+
+  cout << "====output=====>\n";
+  cout << "rc->("<<rc<<") \n";
+  cout << "scmd->("<<scmd<<") \n";
+  cout << "srest->("<<srest<<") \n";
   return;
 }
 
@@ -75,6 +109,9 @@ int main ()
   TestDecodeName("foo?atrs=1&atrs=2@gpios");
   TestDecodeName("foo?atrs=1&atrs=2@gpios!list");
   TestDecodeName("foo?atrs=1&atrs=2!list@gpios");
+
+  TestDecodeCmd("/foo?atrs=1&atrs=2!list@gpios/foo2?atrs=1&atrs=2!list@gpios");
+  TestDecodeCmd("numtwo?atrs=1&atrs=2!list@gpios/numthree?atrs=1&atrs=2!list@gpios");
 
   return 0;
 }

@@ -1,5 +1,11 @@
 Revisions
-3/5/2014 TIme to set up commands
+3/6/2014 
+	 Moved a lof of junk into Strings.cc
+	 Cleaned up tcp lib no longer needs sockets
+         Created nice DecodeDelims
+
+
+3/5/2014 Time to set up commands
 We can preload some basics and allow libs to extend them.
 
 basic commands

@@ -117,7 +117,6 @@ int runLibTest2(const string& sin)
 
 int runLibTest(void)
 {
-
     T2 * t2;
     void *handle;
     setup_t setup;
@@ -144,10 +143,9 @@ int runLibTest(void)
     cout << " Setup return value [" <<ret<<"] \n";
     if (ret == 0)
       {
-	t2->RunAction(cout, "scan", NULL);
-	t2->RunAction(cout, "show", NULL);
+	t2->RunAction(cout, "!scan", NULL);
+	t2->RunAction(cout, "!show", NULL);
       }
-
     return 0;
 }
 
@@ -180,8 +178,8 @@ int runTcpTest(void)
     cout << " Setup return value [" <<ret<<"] \n";
     if (ret == 0)
       {
-	t2->RunAction(cout, "scan", NULL);
-	t2->RunAction(cout, "show", NULL);
+	t2->RunAction(cout, "!scan", NULL);
+	t2->RunAction(cout, "!show", NULL);
       }
 
     return 0;
@@ -243,11 +241,11 @@ int mainList(ostream& os, T2 *t2, void *data)
 
 int setup(ostream &os, T2 *t2 , void *data)
 {
-  t2->AddAction("help", (void*)mainHelp);
+  t2->AddAction("!help", (void*)mainHelp);
   //t2->AddAction("scan",  (void*)tcpScan);
   //t2->AddAction("get",   (void*)tcpGet);
   //t2->AddAction("set",   (void *)tcpSet);
-  t2->AddAction("list",  (void *)mainList);
+  t2->AddAction("!list",  (void *)mainList);
   //    t2->SetAttrs((string)"?port=5566");
   return 0;
 }

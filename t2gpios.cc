@@ -6,36 +6,29 @@
  **  on port 1234 
  ******************************************/
 
-#include <iostream>
-#include <limits>
-#include <map>
-#include <cstring>
-#include <string>
-#include <sstream>
-#include <istream>
-#include <algorithm>
-#include <iterator>
-#include <vector>
-#include <unistd.h>
+
 
 #include <vector>
 #include <map>
 #include <iostream>
 #include <fstream>
-#include <limits>
-#include <map>
+#include <istream>
 #include <cstring>
 #include <string>
 #include <sstream>
+#include <limits>
+#include <map>
 #include <algorithm>
 #include <iterator>
 #include <vector>
+
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <netdb.h>
+
 using namespace std;
 
 #include "T2.h"
@@ -70,10 +63,10 @@ extern "C"
 {
   int setup(ostream &os, T2 *t2 , void *data)
 {
-    t2->AddAction("scan", (void*)gpioScan);
-    t2->AddAction("get", (void*)gpioGet);
-    t2->AddAction("set", (void *)gpioSet);
-    t2->AddAction("show", (void *)gpioShow);
+    t2->AddAction("!scan", (void*)gpioScan);
+    t2->AddAction("!get", (void*)gpioGet);
+    t2->AddAction("!set", (void *)gpioSet);
+    t2->AddAction("!show", (void *)gpioShow);
     t2->SetAttrs((string)"?pin=1&dir=input&value=on");
     //   t2->AddKid((string)"gpio_1", (string)"?pin=1&dir=input");
     //t2->AddKid((string)"gpio_2", (string)"?pin=2&dir=input");
