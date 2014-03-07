@@ -40,7 +40,25 @@ using namespace std;
 #include "T2.h"
 #include "Socket.h"
 #include "t2tcps.h"
- 
+
+// used from C++ code
+int SendClient(int sock, string msg)
+{
+  int rc;
+    /* Send back received data */
+  rc = send(sock, msg.c_str(), msg.length(), 0);
+  return rc;
+}
+
+// used from C++ code
+int RecvClient(int sock, char *buffer, int len)
+{
+  int rc;
+  /* receive data */
+  rc = recv(sock, buffer, len, 0);
+  return rc;
+}
+
 
 // server thread
 static void *tcpsThread(void *data)

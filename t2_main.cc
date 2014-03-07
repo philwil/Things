@@ -23,17 +23,11 @@
 using namespace std;
 
 #include "T2.h"
-#include "Socket.h"
+//#include "Socket.h"
+#include "Strings.h"
 
-int SplitName(string &s1, string &s2, const string &sname);
-int SplitAddr(string &s1, string &s2, const string &sname);
 
 int setup(ostream &os, T2 *t2 , void *data);
-
-// returns 0 for just a name ,1 for lib 2 for cmd
-int DecodeName(string &sname, string &sfcn, string &sact, string &sattrs, const string& sin);
-
-int StringNewName(string& new_name, string &addr, string &port, const string &sin);
 
 
 tMap Kids;
@@ -157,6 +151,42 @@ int runLibTest(void)
     return 0;
 }
 
+int runTcpTest(void)
+{
+
+    T2 * t2;
+    void *handle;
+    setup_t setup;
+     // T2->addLib
+
+    cout << "Create a Kid with a Lib " << endl;
+
+    t2 = Types["tcps"]=new T2("tcps");
+       
+    handle =  dlopen("./libt2tcps.so", RTLD_NOW);
+    if ( !handle) {
+      cerr << "dlopen "<< (char *)dlerror()<<"\n";
+      return -1;
+    }
+
+    dlerror();  /* clear any current error */
+    setup = (setup_t)dlsym(handle, "setup");
+    char * error = (char *)dlerror();
+    if (error != NULL) {
+      cout << "dlsym error \n"<<(char *)dlerror()<<"\n";
+      return -1;
+    }
+    int ret = setup(cout, t2, NULL);
+    cout << " Setup return value [" <<ret<<"] \n";
+    if (ret == 0)
+      {
+	t2->RunAction(cout, "scan", NULL);
+	t2->RunAction(cout, "show", NULL);
+      }
+
+    return 0;
+}
+
 int runTest(void)
 {
 
@@ -236,6 +266,10 @@ int main(int argc, char *argv[])
   else if (( argc == 1 ) || ((string)argv[1] == "lib"))
   {
       runLibTest();
+  }
+  else if (( argc == 1 ) || ((string)argv[1] == "tcp"))
+  {
+      runTcpTest();
   }
   else if (( argc == 1 ) || ((string)argv[1] == "name"))
   {

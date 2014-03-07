@@ -1,4 +1,4 @@
-all: things t2 libt2gpios.so libt2tcps.so
+all: things t2 libt2gpios.so libt2tcps.so Strings
 CPP=g++
 
 Things.o: Things.cc Things.h
@@ -7,8 +7,14 @@ Things.o: Things.cc Things.h
 Socket.o: Socket.cc Socket.h 
 	$(CPP)	 -g -c $< -fPIC
 
+Strings.o: Strings.cc Strings.h 
+	$(CPP)	 -g -c $< -fPIC
+
 main.o: main.cc Things.h
 	$(CPP) -g -c $<
+
+Strings: Strings.cc Strings.h
+	$(CPP) -g -o $@ -DTEST_MAIN  $<
 
 t2_main.o: t2_main.cc T2.h
 	$(CPP) -g -c $<
@@ -16,17 +22,17 @@ t2_main.o: t2_main.cc T2.h
 T2.o: T2.cc T2.h
 	$(CPP) -g -c -fPIC $<
 
-libt2gpios.so: t2gpios.cc T2.o 
-	$(CPP) -o $@ $< T2.o  -shared -fPIC
+libt2gpios.so: t2gpios.cc T2.o Strings.o
+	$(CPP) -o $@ $< T2.o  Strings.o -shared -fPIC
 
-libt2tcps.so: t2tcps.cc T2.o Socket.o
-	$(CPP) -o $@ $< T2.o Socket.o -shared -fPIC
+libt2tcps.so: t2tcps.cc T2.o Strings.o 
+	$(CPP) -o $@ $< T2.o Strings.o  -shared -fPIC
 
-things: main.o Things.o Socket.o cJSON.o
-	$(CPP) -g -o $@ main.o Things.o Socket.o cJSON.o -lpthread -lm -lrt
+things: main.o Things.o Socket.o cJSON.o Strings.o
+	$(CPP) -g -o $@ main.o Things.o Strings.o Socket.o cJSON.o -lpthread -lm -lrt
 
-t2:    t2_main.o T2.o
-	$(CPP) -g -o $@ t2_main.o T2.o cJSON.o -lpthread -lm -lrt -ldl
+t2:    t2_main.o T2.o Strings.o cJSON.o
+	$(CPP) -g -o $@ t2_main.o T2.o Strings.o cJSON.o -lpthread -lm -lrt -ldl
 
 clean:
-	rm -f *.o *.so things t2
+	rm -f *.o *.so things t2 Strings
