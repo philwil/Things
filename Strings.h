@@ -23,6 +23,7 @@ int StringNewName(string& new_name, string &addr, string &port, const string &si
 int Split(vector<string>&lst, const string& sinput, const string& seps
 	  , bool remove_empty);
 int SplitString(string &sname, string &attrs, string &remains, string &src);
+int SplitString(string &sname, string &remains, string &src);
 int DecodeName(string &sname, string &slib, string &sact, string &satr, const string& sin);
 int SplitAttr(string &s1, string &s2, const string &sattrs);
 

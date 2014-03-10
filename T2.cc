@@ -38,6 +38,7 @@ void myDie(const char *msg) { perror(msg); exit(1); }
 
 // we will loose this soon
 extern tMap Kids;
+extern tMap Types;
 
 
 void T2::Show(ostream &os)
@@ -77,13 +78,53 @@ void T2::SetAttrs(const string &sattrs)
 	cout << " No attrs to set \n";
 	return;
       }
+    cout << "before split\n";
     Split(attrs, sattrs, "?&", true);
+    cout << "after split\n";
     for (it = attrs.begin(); it != attrs.end(); ++it)
     {
-      cout << " Set attr ["<<*it<<"] for ["<< name<<"]\n"; 
+        cout << " Set attr ["<<*it<<"] for ["<< name<<"]\n"; 
 	SetAttr(*it);
     }
 }
+#if 0
+int T2::SetLib(const string inname)
+{
+  string lname = inname;
+  lname.erase(0,1);
+  cout << "Create a Kid with a Lib " << endl;
+  
+  if (Types[lname] = NULL)
+  {
+      t2 = Types[lname]=new T2(lname);
+      string lfull = "./libt2"+lname+".so";
+    handle =  dlopen(lfull, RTLD_NOW);
+    if ( !handle) {
+      cerr << "dlopen "<< (char *)dlerror()<<"\n";
+      return -1;
+    }
+
+    dlerror();  /* clear any current error */
+    setup = (setup_t)dlsym(handle, "setup");
+    char * error = (char *)dlerror();
+    if (error != NULL) {
+      cout << "dlsym error \n"<<(char *)dlerror()<<"\n";
+      return -1;
+    }
+    int ret = setup(cout, t2, NULL);
+    cout << " Setup return value [" <<ret<<"] \n";
+#if 0
+    if (ret == 0)
+      {
+	t2->RunAction(cout, "!scan", NULL);
+	t2->RunAction(cout, "!show", NULL);
+      }
+#endif
+
+    return ret;
+}
+
+#endif
 
 void T2::SetAttr(const string &sattrs)
 {
@@ -118,18 +159,65 @@ void T2::SetAttr(const string &sattrs)
 // this means that the /name@addr:port
 //            or      /name@:port
 // will work
-T2* operator<<(T2* t2, const string &insrc)
+T2* operator<<(T2*t2, const string &insrc)
 {
     string sname;
     string src = insrc;
-    string attrs;
     string remains;
+
     if (src.size() == 0) return t2;
 
-    int isMe=SplitString(sname, attrs, remains, src);
-    cout << "src ["<< src <<"] sname ["<<sname<<"] attrs ["<<attrs<<"] remains ["<< remains<<"] "<< endl;
-    //return t2;
-    T2 * myt;
+    int isMe=SplitString(sname, remains, src);
+    cout << "src ["<< src <<"] sname ["<<sname<<"] remains ["<< remains<<"] "<< endl;
+    sMap sMap;
+    string dlims ="!@?";
+    int rc = DecodeDelims(sMap, dlims, sname);
+    sMap::iterator iter;
+    iter = sMap.begin();
+    T2 *myt2=t2;
+    T2 *origt2 = t2;
+    string kname;
+    // the / element is the child of interest
+    // the ? element is the attributes
+    // the @ element is the lib
+    // the ! element is the list of commands
+    for ( ; iter != sMap.end(); ++iter) {
+      switch (iter->first) {
+      case '/':
+	cout <<" create / use Kid ["<< iter->second <<"] \n";
+	kname = iter->second;
+        if(kname[0]=='/')kname.erase(0,1);
+        if(myt2->getMap(Kids, kname, false) == NULL)
+	  {
+	    cout << "adding Kid "<<kname <<" to [" << myt2->name<<"] \n";
+	    myt2=myt2->getMap(Kids, kname, true);
+	  }
+	else 
+	  {
+	    cout << "using Kid "<<kname <<" from [" << myt2->name<<"] \n";
+	    myt2 = myt2->Kids[kname];
+	  }
+	break;
+      case '?':
+	cout <<" process attrs ["<< iter->second <<"] \n";
+	myt2->SetAttrs(iter->second);
+	break;
+      case '@':
+	cout <<" load lib ["<< iter->second <<"] \n";
+	myt2->addFcn(cout, iter->second);
+	myt2->t2_type = Types[iter->second];
+	break;
+      case '!':
+	cout <<" run command ["<< iter->second <<"] \n";
+	string act = iter->second;
+	myt2->RunAction(cout, act, (void *) origt2);
+	break;
+
+      }
+    }
+    return t2;
+#if 0
+
     /// look for leading slash, if found, affect me
     // TODO restore attrs and remains
     if(isMe)
@@ -191,7 +279,9 @@ T2* operator<<(T2* t2, const string &insrc)
       return myt<<remains;
     else 
         return myt;
+#endif
 }
+
 // show the structure
 ostream& operator<<(ostream& os, T2* t2)
 {

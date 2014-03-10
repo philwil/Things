@@ -5,6 +5,7 @@
 #include <map>
 #include <iostream>
 #include <sstream>
+# include <stdio.h>
 
 #include "Strings.h"
 
@@ -17,24 +18,49 @@ int DecodeDelims(sMap& sMap, const string &dls, const string& sin)
 {
   string delims=dls;
   string samp = sin;
-  size_t found = 0;
+  size_t found = -1;
   char skey;
+  char sampc;
+  int ix;
   int rc = 0;
   bool done = false;
   skey = '/';  // default first key
   while((delims.size() > 0) && ! done)
     {
       rc++;
-      if(found > 0)
-	{
-	  skey=samp[found];
-	  delims.erase(delims.find(skey),1);
-	  samp.erase(0,found);
-	}
+      //      if(found > -1)
+      //{
+      //  skey=samp[found];
+      //  delims.erase(delims.find(skey),1);
+      //  samp.erase(0,found);
+      //}
       found=samp.find_first_of(delims);
-      cout << "rc ("<<rc<<") samp now ["<<samp<<"] delims ["<<delims<<"] key["<<skey<<"]\n";
-      sMap[skey]=samp.substr(0, found);
-      done =(found==string::npos);
+      cout << "rc ("<<rc<<") found ("<<found<<")\n";
+      for (ix =0; ix < samp.size(); ++ix){
+	cout << "ix["<<ix<<"] char (" << samp[ix];
+	printf(") hex [%x] \n", samp[ix]);
+      }
+      cout << "samp now ["<<samp<<"] delims ["<<delims<<"] key["<<skey<<"]\n";
+      if (found==string::npos) {
+	if (rc > 0)sMap[skey]=samp;
+	done = true;
+      } else {
+	if (found >0) {
+	  sMap[skey]=samp.substr(0, found);
+	  cout <<"Skey was ["<<skey<<"] data ["<< sMap[skey]<<"] \n";
+	  skey=samp[found];
+	  samp.erase(0,found);
+	  cout << "samp now ["<<samp<<"]\n";
+          if(delims.find(skey) != string::npos) {
+	    delims.erase(delims.find(skey),1);
+	  }
+	  //samp.erase(0,found);
+	  cout << "samp now ["<<samp<<"] delims ["<<delims<<"] key["<<skey<<"]\n";
+	} else {
+	  samp.erase(0,1);
+	}
+      }
+      if(rc > 5) done=true;
     }
   return rc;
 }
@@ -239,7 +265,7 @@ int SplitString(string &sname, string &attrs, string &remains, string &src)
 	    ret = 1;
 	    sname.erase(0,1);
 	}
-	size_t end1 = sname.find('/',0);
+	size_t end1 = sname.find('/',1);
 	if (end1 == string::npos)
 	{
 	    string empty;
@@ -260,6 +286,41 @@ int SplitString(string &sname, string &attrs, string &remains, string &src)
 	{
 	    attrs = sname.substr(end1);
 	    sname.erase(end1, string::npos);
+	}
+    }
+    return ret;
+}
+// Another split program
+// splits an input string 
+// ("/foo?att=1&attr=2/fun/some/other/stuff")
+//      sname attrs           remains
+// into [foo] [?att=1&attr=2] [fun/some/other/stuff]
+int SplitString(string &sname, string &remains, string &src)
+{
+    int ret = 0;
+    if (src.size() > 0)
+    {
+	sname = src;
+	if(sname.find('/',0) == 0)
+	{
+	    ret = 1;
+	    //sname.erase(0,1);
+	}
+	size_t end1 = sname.find('/',1);
+	if (end1 == string::npos)
+	{
+	    string empty;
+	    remains=empty;
+	}
+	else
+	{
+	    string dummy = sname.substr(0, end1);
+	    remains = sname.substr(end1);
+	    if(remains.find('/',0)==0)
+	    {
+		remains.erase(0,1);
+	    }
+	    sname = dummy;
 	}
     }
     return ret;

@@ -84,9 +84,11 @@ static void *tcpsThread(void *data)
     }
     rc = RecvClient(t2s->sock, buffer, sizeof buffer);
     string cmd = (string)buffer;
+    if (cmd[cmd.size()-1] == '\n') 
+      cmd.erase(cmd.size()-1 , 1);
     //TODO process string
     cout << " got rc ["<<rc<<"] cmd ["<< cmd<<"]\n";
-
+    t2 << cmd;
     rc = SendClient(t2s->sock, "reply from " + t2->name + " =="+cmd);
   }
   cout <<"client closed \n";

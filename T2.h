@@ -185,7 +185,7 @@ public:
     if(act->action)
       {
 	action=(action_t)act->action;
-	action(os,this,data);
+	action(os, this, data);
       }
   }
 
@@ -198,10 +198,16 @@ public:
 
   int addFcn(ostream &os, string &name)
   {
-    string dlname = "./libt2"+name+".so";
+    string dname = name;
+    if (dname[0] == '@')
+      dname.erase(0,1);
+    
+    
+    string dlname = "./libt2"+dname+".so";
+    cout <<"dlname =["<<dname<<"]\n";
     void * handle;
     action_t setup;
-    T2 * t2 = AddAction(name);
+    T2 * t2 = AddAction(dname);
 
     handle =  dlopen(dlname.c_str(), RTLD_NOW);
     if (!handle) {
@@ -245,6 +251,8 @@ public:
   T2 * t2_type;     // type for generic type actions
   void *t2Sock;
   void SetAttr(const string &sattrs); 
+  int SetLib(const string inname);
+
  private:
   int foo;
 
