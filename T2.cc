@@ -69,23 +69,41 @@ void T2::Show(ostream &os)
 // a leading slash will shift the focus onto the main Things register
 //
 
-void T2::SetAttrs(const string &sattrs)
+void T2::SetAttrs(const string &sin)
 {
     vector <string> attrs;
     vector <string>::iterator it;
-    if (sattrs.size() == 0) 
+    if (sin.size() == 0) 
       {
 	cout << " No attrs to set \n";
 	return;
       }
-    cout << "before split\n";
-    Split(attrs, sattrs, "?&", true);
-    cout << "after split\n";
-    for (it = attrs.begin(); it != attrs.end(); ++it)
-    {
-        cout << " Set attr ["<<*it<<"] for ["<< name<<"]\n"; 
-	SetAttr(*it);
-    }
+    
+    cout << " Setting  attrs["<<sin<<"] \n";
+    string sattrs = sin;
+    
+    int found = sattrs.find_first_of("?&");
+    cout << " Sattrs 0 ["<<sattrs<<"] for [] found ["<<found <<"]\n"; 
+    if(found == 0)
+      sattrs.erase(0,1);
+    found = sattrs.find_first_of("?&");
+    cout << " Sattrs 1 ["<<sattrs<<"] for ["<< name<<"] found ["<<found <<"]\n"; 
+
+    string satt;
+    while ((found != string::npos) && (found > 0))
+      {
+	satt = sattrs.substr(0,found);
+        cout << " Set attr ["<<satt<<"] for ["<< name<<"] found ["<<found <<"]\n"; 
+	SetAttr(satt);
+	sattrs.erase(0,found+1);
+	found = sattrs.find_first_of("?&");
+      }
+    if (sattrs.size())
+      {
+        cout << " Set attr ["<<sattrs<<"] for ["<< name<<"] found ["<<found <<"]\n"; 
+	SetAttr(sattrs);
+      }
+
 }
 #if 0
 int T2::SetLib(const string inname)
@@ -173,7 +191,6 @@ T2* operator<<(T2*t2, const string &insrc)
     string dlims ="!@?";
     int rc = DecodeDelims(sMap, dlims, sname);
     sMap::iterator iter;
-    iter = sMap.begin();
     T2 *myt2=t2;
     T2 *origt2 = t2;
     string kname;
@@ -181,6 +198,7 @@ T2* operator<<(T2*t2, const string &insrc)
     // the ? element is the attributes
     // the @ element is the lib
     // the ! element is the list of commands
+    iter = sMap.begin();
     for ( ; iter != sMap.end(); ++iter) {
       switch (iter->first) {
       case '/':
@@ -190,7 +208,8 @@ T2* operator<<(T2*t2, const string &insrc)
         if(myt2->getMap(Kids, kname, false) == NULL)
 	  {
 	    cout << "adding Kid "<<kname <<" to [" << myt2->name<<"] \n";
-	    myt2=myt2->getMap(Kids, kname, true);
+	    myt2->Kids[kname] = new T2(kname);
+	    myt2= myt2->Kids[kname];
 	  }
 	else 
 	  {
@@ -198,10 +217,12 @@ T2* operator<<(T2*t2, const string &insrc)
 	    myt2 = myt2->Kids[kname];
 	  }
 	break;
+
       case '?':
 	cout <<" process attrs ["<< iter->second <<"] \n";
 	myt2->SetAttrs(iter->second);
 	break;
+
       case '@':
 	cout <<" load lib ["<< iter->second <<"] \n";
 	myt2->addFcn(cout, iter->second);

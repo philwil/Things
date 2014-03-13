@@ -14,6 +14,8 @@ using namespace std;
 // OK this is the decode name 
 // have a map of delims as an input
 // The best Decode name !!!
+// this sucks on the first delim
+// look for n and if it is in slot 0 then proceed from there
 int DecodeDelims(sMap& sMap, const string &dls, const string& sin)
 {
   string delims=dls;
@@ -24,7 +26,17 @@ int DecodeDelims(sMap& sMap, const string &dls, const string& sin)
   int ix;
   int rc = 0;
   bool done = false;
-  skey = '/';  // default first key
+  found=samp.find_first_of(delims);
+  if (found == 0)
+    {
+      skey = samp[0];  // default first key nar redo  this
+      samp.erase(0,1);
+      delims.erase(delims.find(skey),1);
+    } 
+  else
+    {
+      skey = '/';
+    }
   while((delims.size() > 0) && ! done)
     {
       rc++;

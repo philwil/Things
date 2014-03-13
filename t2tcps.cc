@@ -82,8 +82,14 @@ static void *tcpsThread(void *data)
     if ( rc > 0 ) {
       rc = SendClient(t2s->sock, prompt);
     }
-    rc = RecvClient(t2s->sock, buffer, sizeof buffer);
+    rc = RecvClient(t2s->sock, buffer, sizeof buffer -1);
+    if (rc>0) buffer[rc]=0;
     string cmd = (string)buffer;
+    if(cmd.find('\n') != string::npos)
+      cmd.erase(cmd.find('\n'),1);
+    if(cmd.find('\r') != string::npos)
+      cmd.erase(cmd.find('\r'),1);
+
     if (cmd[cmd.size()-1] == '\n') 
       cmd.erase(cmd.size()-1 , 1);
     //TODO process string
