@@ -27,5 +27,6 @@ int SplitString(string &sname, string &remains, string &src);
 int DecodeName(string &sname, string &slib, string &sact, string &satr, const string& sin);
 int SplitAttr(string &s1, string &s2, const string &sattrs);
 
+void fixTcpCmd(string &cmd,char *buffer);
 
 #endif

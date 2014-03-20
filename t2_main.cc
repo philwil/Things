@@ -25,7 +25,8 @@ using namespace std;
 #include "T2.h"
 //#include "Socket.h"
 #include "Strings.h"
-
+int mainList(ostream& os, T2 *t2, void *data);
+int mainHelp(ostream& os, T2 *t2, void *data);
 
 int setup(ostream &os, T2 *t2 , void *data);
 
@@ -157,9 +158,12 @@ int runTcpTest(void)
     setup_t setup;
      // T2->addLib
 
+
     cout << "Create a Kid with a Lib " << endl;
 
     t2 = Types["tcps"]=new T2("tcps");
+    t2->AddAction("!list",  (void *)mainList);
+    t2->AddAction("list",  (void *)mainList);
        
     handle =  dlopen("./libt2tcps.so", RTLD_NOW);
     if ( !handle) {
@@ -246,6 +250,7 @@ int setup(ostream &os, T2 *t2 , void *data)
   //t2->AddAction("get",   (void*)tcpGet);
   //t2->AddAction("set",   (void *)tcpSet);
   t2->AddAction("!list",  (void *)mainList);
+  t2->AddAction("list",  (void *)mainList);
   //    t2->SetAttrs((string)"?port=5566");
   return 0;
 }

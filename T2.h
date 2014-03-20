@@ -175,6 +175,7 @@ public:
       } 
     else
       {
+        // try the global actions
 	act = getMap(Actions, name, false); 
       }
     if (!act) {
@@ -225,6 +226,8 @@ public:
     int ret = setup(os, t2, NULL);
     return ret;
   }
+
+  int ServiceInput(ostream &os, const string&insrc, void *data);
 
 
 

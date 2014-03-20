@@ -39,6 +39,7 @@ using namespace std;
 #include "T2.h"
 #include "Socket.h"
 #include "t2tcps.h"
+#include "Strings.h"
 
 // used from C++ code
 int SendClient(int sock, string msg)
@@ -77,6 +78,8 @@ static void *tcpsThread(void *data)
 
   while (rc>0) {
     ostringstream ocout;
+    //  stringstream oss;
+    //ostream oc;
     prompt="\n"+ t2->name+"=>";
 
     if ( rc > 0 ) {
@@ -84,18 +87,15 @@ static void *tcpsThread(void *data)
     }
     rc = RecvClient(t2s->sock, buffer, sizeof buffer -1);
     if (rc>0) buffer[rc]=0;
-    string cmd = (string)buffer;
-    if(cmd.find('\n') != string::npos)
-      cmd.erase(cmd.find('\n'),1);
-    if(cmd.find('\r') != string::npos)
-      cmd.erase(cmd.find('\r'),1);
-
-    if (cmd[cmd.size()-1] == '\n') 
-      cmd.erase(cmd.size()-1 , 1);
+    string cmd;
+    fixTcpCmd(cmd, buffer);
     //TODO process string
     cout << " got rc ["<<rc<<"] cmd ["<< cmd<<"]\n";
-    t2 << cmd;
-    rc = SendClient(t2s->sock, "reply from " + t2->name + " =="+cmd);
+    //    t2 << cmd;
+    t2->ServiceInput(ocout, cmd , data);
+    //string foo;
+    //foo=ocout.str();
+    rc = SendClient(t2s->sock, "reply from " + t2->name + "==" + ocout.str());
   }
   cout <<"client closed \n";
   close(t2s->sock);  

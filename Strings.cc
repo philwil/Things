@@ -9,7 +9,19 @@
 
 #include "Strings.h"
 
-using namespace std;
+using namespace std;    
+
+
+void fixTcpCmd(string &cmd,char *buffer)
+{
+    cmd = (string)buffer;
+    if(cmd.find('\n') != string::npos)
+      cmd.erase(cmd.find('\n'),1);
+    if(cmd.find('\r') != string::npos)
+      cmd.erase(cmd.find('\r'),1);
+    if (cmd[cmd.size()-1] == '\n') 
+      cmd.erase(cmd.size()-1 , 1);
+}
 
 // OK this is the decode name 
 // have a map of delims as an input

@@ -173,6 +173,133 @@ void T2::SetAttr(const string &sattrs)
     }
 }
 
+
+int T2::ServiceInput(ostream&os, const string&insrc, void *data)
+{
+    string sname;
+    string src = insrc;
+    string remains;
+
+    if (src.size() == 0) return 0;
+
+    int isMe=SplitString(sname, remains, src);
+    cout << "src ["<< src <<"] sname ["<<sname<<"] remains ["<< remains<<"] "<< endl;
+    sMap sMap;
+    string dlims ="!@?";
+    int rc = DecodeDelims(sMap, dlims, sname);
+    sMap::iterator iter;
+    T2 *myt2=this;
+    T2 *origt2 = this;
+    string kname;
+    // the / element is the child of interest
+    // the ? element is the attributes
+    // the @ element is the lib
+    // the ! element is the list of commands
+    iter = sMap.begin();
+    for ( ; iter != sMap.end(); ++iter) {
+      switch (iter->first) {
+      case '/':
+	cout <<" create / use Kid ["<< iter->second <<"] \n";
+	kname = iter->second;
+        if(kname[0]=='/')kname.erase(0,1);
+        if(myt2->getMap(Kids, kname, false) == NULL)
+	  {
+	    cout << "adding Kid "<<kname <<" to [" << myt2->name<<"] \n";
+	    myt2->Kids[kname] = new T2(kname);
+	    myt2= myt2->Kids[kname];
+	  }
+	else 
+	  {
+	    cout << "using Kid "<<kname <<" from [" << myt2->name<<"] \n";
+	    myt2 = myt2->Kids[kname];
+	  }
+	break;
+
+      case '?':
+	cout <<" process attrs ["<< iter->second <<"] \n";
+	myt2->SetAttrs(iter->second);
+	break;
+
+      case '@':
+	cout <<" load lib ["<< iter->second <<"] \n";
+	myt2->addFcn(cout, iter->second);
+	myt2->t2_type = Types[iter->second];
+	break;
+      case '!':
+	cout <<" run command ["<< iter->second <<"] \n";
+	string act = iter->second;
+	myt2->RunAction(os, act, (void *)origt2);
+	break;
+
+      }
+    }
+    return 0;
+#if 0
+
+    /// look for leading slash, if found, affect me
+    // TODO restore attrs and remains
+    if(isMe)
+    {
+        string new_name, addr, port;
+        int scount= StringNewName(new_name, addr, port, insrc);
+	new_name.erase(0,1);
+
+        if (scount == 1)
+	  {
+	    t2->name = new_name;
+	    //return t2;
+	  }
+        if (scount == 2)
+	  {
+	    t2->name = new_name;
+	    //t2->RunServer(port);  // will spin forever
+            // todo send remains
+	    // perhaps we do the remains first ans then run the server
+	  }
+        if (scount == 2)
+	  {
+	    t2->name = new_name;
+	    //t2->SetLink(addr, port);  
+            // todo send remains across link
+	    // perhaps we do the remains first ans then run the server
+	  }
+    }
+#if 0
+        if (!t2->parent)
+        {
+	  cout << "adding "<<sname <<" at base \n";
+	  //return t2;
+	    getMap(Kids, sname);
+	    Kids[sname]->parent = NULL;
+	    Kids[sname]->depth = 0;
+	    myt = Kids[sname];
+	}
+	else
+        {
+	    cout << "adding "<<sname <<" to [" << t2->parent->name<<"] \n";
+	    getMap(Kids, sname);
+	    t2->parent->Kids[sname]->parent = NULL;
+	    t2->parent->Kids[sname]->depth = t2->parent->depth+1;
+	    myt = t2->parent->Kids[sname];
+	}
+    }
+#endif
+    else 
+    {
+      cout << "adding Kid "<<sname <<" to [" << t2->name<<"] \n";
+        t2->getMap(Kids, sname);
+	myt = t2->Kids[sname];
+    }
+    cout << " ****myt name ["<< myt->name << "] attrs ["<<attrs<<"] size "<< attrs.size()<<"\n";
+    if(attrs.size() > 0)
+        myt->SetAttrs(attrs);
+    if(remains.size() > 0)
+      return myt<<remains;
+    else 
+        return myt;
+#endif
+}
+
 // revise the isBrother concept to mean isMe
 // this means that the /name@addr:port
 //            or      /name@:port
@@ -231,7 +358,7 @@ T2* operator<<(T2*t2, const string &insrc)
       case '!':
 	cout <<" run command ["<< iter->second <<"] \n";
 	string act = iter->second;
-	myt2->RunAction(cout, act, (void *) origt2);
+	myt2->RunAction(cout, act, (void *)origt2);
 	break;
 
       }
