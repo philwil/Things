@@ -79,28 +79,28 @@ void T2::SetAttrs(const string &sin)
 	return;
       }
     
-    cout << " Setting  attrs["<<sin<<"] \n";
+    //cout << " Setting  attrs["<<sin<<"] \n";
     string sattrs = sin;
     
     int found = sattrs.find_first_of("?&");
-    cout << " Sattrs 0 ["<<sattrs<<"] for [] found ["<<found <<"]\n"; 
+    //cout << " Sattrs 0 ["<<sattrs<<"] for [] found ["<<found <<"]\n"; 
     if(found == 0)
       sattrs.erase(0,1);
     found = sattrs.find_first_of("?&");
-    cout << " Sattrs 1 ["<<sattrs<<"] for ["<< name<<"] found ["<<found <<"]\n"; 
+    //cout << " Sattrs 1 ["<<sattrs<<"] for ["<< name<<"] found ["<<found <<"]\n"; 
 
     string satt;
     while ((found != string::npos) && (found > 0))
       {
 	satt = sattrs.substr(0,found);
-        cout << " Set attr ["<<satt<<"] for ["<< name<<"] found ["<<found <<"]\n"; 
+        //cout << " Set attr ["<<satt<<"] for ["<< name<<"] found ["<<found <<"]\n"; 
 	SetAttr(satt);
 	sattrs.erase(0,found+1);
 	found = sattrs.find_first_of("?&");
       }
     if (sattrs.size())
       {
-        cout << " Set attr ["<<sattrs<<"] for ["<< name<<"] found ["<<found <<"]\n"; 
+        //cout << " Set attr ["<<sattrs<<"] for ["<< name<<"] found ["<<found <<"]\n"; 
 	SetAttr(sattrs);
       }
 
@@ -172,7 +172,53 @@ void T2::SetAttr(const string &sattrs)
 	}
     }
 }
+ 
 
+int T2::addLib(ostream&os, const string&slib_in, void *data)
+{
+  string slib = slib_in;
+  if (slib.size()==0) return -1; 
+
+  if (slib[0]=='@')
+    {
+      slib.erase(0,1);
+    }
+  if (slib.size()>0) 
+    {
+      T2 *t2_t;
+      
+      if (!Types[slib])
+	{
+	  cout << " Creating Type [" << slib <<"]\n";
+	  string dlname = "./libt2"+slib+".so";
+	  void * handle;
+	  action_t setup;
+	  Types[slib] = new T2(slib);
+	  t2_t = Types[slib];
+
+	  handle =  dlopen(dlname.c_str(), RTLD_NOW);
+	  if (!handle) 
+	    {
+	      cout << "dlopen "<< (char *)dlerror()<<"\n";
+	      return -1;
+	    }
+	  
+	  dlerror();  /* clear any current error */
+	  setup = (action_t)dlsym(handle, "setup");
+	  char *error = (char *)dlerror();
+	  if (error != NULL) {
+	    cout << "dlsym error \n"<<(char *)dlerror()<<"\n";
+	    return -1;
+	  }
+	  int ret = setup(cout, t2_t, NULL);
+	}
+      t2_t =  Types[slib];
+      //cout << t2_t;
+      copyAttrs(os, t2_t); 
+      t2_type = t2_t;
+    }
+  return 0;
+}
 
 int T2::ServiceInput(ostream&os, const string&insrc, void *data)
 {
@@ -186,6 +232,7 @@ int T2::ServiceInput(ostream&os, const string&insrc, void *data)
     cout << "src ["<< src <<"] sname ["<<sname<<"] remains ["<< remains<<"] "<< endl;
     sMap sMap;
     string dlims ="!@?";
+    // split up into this command and the "rest"
     int rc = DecodeDelims(sMap, dlims, sname);
     sMap::iterator iter;
     T2 *myt2=this;
@@ -205,7 +252,8 @@ int T2::ServiceInput(ostream&os, const string&insrc, void *data)
         if(myt2->getMap(Kids, kname, false) == NULL)
 	  {
 	    cout << "adding Kid "<<kname <<" to [" << myt2->name<<"] \n";
-	    myt2->Kids[kname] = new T2(kname);
+	    myt2->AddKid(kname);
+	    //	    myt2->Kids[kname] = new T2(kname);
 	    myt2= myt2->Kids[kname];
 	  }
 	else 
@@ -221,8 +269,9 @@ int T2::ServiceInput(ostream&os, const string&insrc, void *data)
 	break;
 
       case '@':
-	cout <<" load lib ["<< iter->second <<"] \n";
-	myt2->addFcn(cout, iter->second);
+	os <<" load lib ["<< iter->second <<"] \n";
+	//myt2->addFcn(os, iter->second);
+	myt2->addLib(os, iter->second, data);
 	myt2->t2_type = Types[iter->second];
 	break;
       case '!':
@@ -233,6 +282,10 @@ int T2::ServiceInput(ostream&os, const string&insrc, void *data)
 
       }
     }
+    if (remains.size() > 0)
+      {
+	myt2->ServiceInput(os, remains, data);
+      }
     return 0;
 #if 0
 

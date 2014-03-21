@@ -11,7 +11,7 @@
 
 using namespace std;    
 
-
+// fix up a manula tcp entry
 void fixTcpCmd(string &cmd,char *buffer)
 {
     cmd = (string)buffer;
@@ -22,6 +22,7 @@ void fixTcpCmd(string &cmd,char *buffer)
     if (cmd[cmd.size()-1] == '\n') 
       cmd.erase(cmd.size()-1 , 1);
 }
+
 
 // OK this is the decode name 
 // have a map of delims as an input
@@ -52,34 +53,28 @@ int DecodeDelims(sMap& sMap, const string &dls, const string& sin)
   while((delims.size() > 0) && ! done)
     {
       rc++;
-      //      if(found > -1)
-      //{
-      //  skey=samp[found];
-      //  delims.erase(delims.find(skey),1);
-      //  samp.erase(0,found);
-      //}
       found=samp.find_first_of(delims);
-      cout << "rc ("<<rc<<") found ("<<found<<")\n";
-      for (ix =0; ix < samp.size(); ++ix){
-	cout << "ix["<<ix<<"] char (" << samp[ix];
-	printf(") hex [%x] \n", samp[ix]);
-      }
-      cout << "samp now ["<<samp<<"] delims ["<<delims<<"] key["<<skey<<"]\n";
+      //cout << "rc ("<<rc<<") found ("<<found<<")\n";
+      //for (ix =0; ix < samp.size(); ++ix){
+      //	cout << "ix["<<ix<<"] char (" << samp[ix];
+      //printf(") hex [%x] \n", samp[ix]);
+      //}
+      //cout << "samp now ["<<samp<<"] delims ["<<delims<<"] key["<<skey<<"]\n";
       if (found==string::npos) {
 	if (rc > 0)sMap[skey]=samp;
 	done = true;
       } else {
 	if (found >0) {
 	  sMap[skey]=samp.substr(0, found);
-	  cout <<"Skey was ["<<skey<<"] data ["<< sMap[skey]<<"] \n";
+	  //cout <<"Skey was ["<<skey<<"] data ["<< sMap[skey]<<"] \n";
 	  skey=samp[found];
 	  samp.erase(0,found);
-	  cout << "samp now ["<<samp<<"]\n";
+	  //cout << "samp now ["<<samp<<"]\n";
           if(delims.find(skey) != string::npos) {
 	    delims.erase(delims.find(skey),1);
 	  }
 	  //samp.erase(0,found);
-	  cout << "samp now ["<<samp<<"] delims ["<<delims<<"] key["<<skey<<"]\n";
+	  //cout << "samp now ["<<samp<<"] delims ["<<delims<<"] key["<<skey<<"]\n";
 	} else {
 	  samp.erase(0,1);
 	}

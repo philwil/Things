@@ -44,7 +44,7 @@ public:
   T2(string name):name(name),value("none")
   {
     //    T2();
-    cout<<"Name Constructor ["<<name<<"] @" << this <<endl;
+    cout<<"Name Constructor["<<name<<"] @" << this->name <<endl;
     init();
   }
 
@@ -189,6 +189,8 @@ public:
 	action(os, this, data);
       }
   }
+
+  int addLib(ostream&os, const string&slib, void *data);
 
   void addAttr(const string &name, const string value)
   {
