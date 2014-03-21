@@ -1,4 +1,20 @@
 Revisions
+3/20/2014
+       Getting tcpip conections to work with libs and commands
+       fixed that print bug 
+
+       !list works as a base command
+       need !quit next
+       @gpios works as a lib loader  for example /sys/gpio_1@gpios
+       cascaded operations also work...  /foo2/foo3 etc
+       need to make /sys/gpio_1?value provide an output
+
+       {"sys":{"gpio_1":{"value":"1"}}}
+
+       how about json output next ??
+       also need to get something like @gpios!scan
+
+
 3/6/2014 
 	 Moved a lof of junk into Strings.cc
 	 Cleaned up tcp lib no longer needs sockets
