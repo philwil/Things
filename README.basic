@@ -1,4 +1,7 @@
 Revisions
+3/23/2014
+      Got embedded action to work
+
 3/20/2014
        Getting tcpip conections to work with libs and commands
        fixed that print bug 

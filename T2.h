@@ -29,6 +29,8 @@ typedef map<string, T2*> tMap;
 typedef  int (*action_t)(ostream &os, T2 *t2, void *data);
 
 
+extern tMap gActions;
+
 
 class T2
 {
@@ -134,11 +136,7 @@ public:
     Kids[kname]->SetAttrs(attrs);
   }
 
-  void AddAction(const string &name, void *action)
-  {
-    T2 *t2 = getMap(Actions, name); 
-    t2->action = action;
-  }
+  void AddAction(const string &aname, void *action, bool gbl=false);
 
   T2 *AddAction(const string &name)
   {
@@ -166,29 +164,7 @@ public:
   }
 
 
-  void RunAction(ostream &os, const string &name, void *data)
-  {
-    T2 *act;
-    if (t2_type)
-      {
-	act = getMap(t2_type->Actions, name, false);
-      } 
-    else
-      {
-        // try the global actions
-	act = getMap(Actions, name, false); 
-      }
-    if (!act) {
-      os << "Error : action ["<<name<<"] not found \n";
-      return;
-    }
-    action_t action;
-    if(act->action)
-      {
-	action=(action_t)act->action;
-	action(os, this, data);
-      }
-  }
+  void RunAction(ostream &os, const string &aname, void *data);
 
   int addLib(ostream&os, const string&slib, void *data);
 
@@ -198,7 +174,7 @@ public:
     Attrs[name]->value = value;
     valChanged = true;
   }
-
+#if 0
   int addFcn(ostream &os, string &name)
   {
     string dname = name;
@@ -228,6 +204,7 @@ public:
     int ret = setup(os, t2, NULL);
     return ret;
   }
+#endif
 
   int ServiceInput(ostream &os, const string&insrc, void *data);
 
@@ -238,6 +215,7 @@ public:
   friend T2* operator<<(T2* t2, const string &name);
   friend ostream& operator<<(ostream& os, T2* t2);
   void Show(ostream& os);
+  void jShow(ostream& os);
 
   //sClient * client;
   // TODO put these in a special structure
@@ -253,7 +231,7 @@ public:
   tMap Attrs;
   tMap Kids;
   tMap Actions;  // if we have local actions
-  T2 * t2_type;     // type for generic type actions
+  T2 *t2_type;     // type for generic type actions
   void *t2Sock;
   void SetAttr(const string &sattrs); 
   int SetLib(const string inname);

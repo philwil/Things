@@ -60,6 +60,38 @@ void T2::Show(ostream &os)
 
 }
 
+void T2::jShow(ostream &os)
+{
+  //    os << "{\n";
+
+    setIndent(os);
+    os<< "{\""<<name<<"\":" <<endl;
+    tMap::iterator iter;
+    for (iter=Attrs.begin(); iter != Attrs.end(); ++iter)
+      {
+	//Attrs[iter->first]->
+	setIndent(os);
+        setIndent(os, 1);
+        if (iter==Attrs.begin())
+	  {
+	    os << " \""<<iter->first<<"\":\"";
+	  }
+	else
+	  {
+	    os << ",\""<<iter->first<<"\":\"";
+	  }
+	os <<Attrs[iter->first]->value<<"\"\n";
+      }
+    //os <<"\n";
+    for (iter=Kids.begin(); iter != Kids.end(); ++iter)
+      {
+	setIndent(os);
+	Kids[iter->first]->jShow(os);
+      }
+    setIndent(os);
+    os << "}\n";
+}
+
 // this is the main object loader
 // /gpios/gpio_4  will add gpio_4 to gpios
 // /gpios/gpio_4?pin=23&dir=output  
@@ -220,6 +252,55 @@ int T2::addLib(ostream&os, const string&slib_in, void *data)
   return 0;
 }
 
+void T2::AddAction(const string &aname, void *action, bool gbl)
+{
+  T2 *t2; 
+  if (gbl)
+    {
+      t2 = getMap(gActions, aname);
+      cout << " AddAction added global Action{"<<aname<<"}\n";
+    }
+  else
+    {
+      t2 = getMap(Actions, aname); 
+      cout << " AddAction added local Action{"<<aname<<"} to {"<<name<< "}\n";
+    }
+  if(t2)
+    {
+      t2->action = action;
+    }
+}
+
+void T2::RunAction(ostream &os, const string &aname, void *data)
+{
+  T2 *act;
+  string acname=aname;
+  if (acname[0] != '!') acname.insert(0,1,'!');
+  if (t2_type)
+    {
+      act = getMap(t2_type->Actions, acname, false);
+    } 
+  else
+    {
+      // try the actions
+      act = getMap(Actions, acname, false); 
+    }
+  if (!act) 
+    {
+      act = getMap(gActions, acname, false); 
+    }
+  if (!act) {
+    os << "Error : action ["<<acname<<"] aname ["<<aname<<"] not found in ["<<name<<"] \n";
+    return;
+  }
+  action_t action;
+  if(act->action)
+    {
+      action=(action_t)act->action;
+      action(os, this, data);
+    }
+}
+
 int T2::ServiceInput(ostream&os, const string&insrc, void *data)
 {
     string sname;
@@ -287,70 +368,6 @@ int T2::ServiceInput(ostream&os, const string&insrc, void *data)
 	myt2->ServiceInput(os, remains, data);
       }
     return 0;
-#if 0
-
-    /// look for leading slash, if found, affect me
-    // TODO restore attrs and remains
-    if(isMe)
-    {
-        string new_name, addr, port;
-        int scount= StringNewName(new_name, addr, port, insrc);
-	new_name.erase(0,1);
-
-        if (scount == 1)
-	  {
-	    t2->name = new_name;
-	    //return t2;
-	  }
-        if (scount == 2)
-	  {
-	    t2->name = new_name;
-	    //t2->RunServer(port);  // will spin forever
-            // todo send remains
-	    // perhaps we do the remains first ans then run the server
-	  }
-        if (scount == 2)
-	  {
-	    t2->name = new_name;
-	    //t2->SetLink(addr, port);  
-            // todo send remains across link
-	    // perhaps we do the remains first ans then run the server
-	  }
-    }
-#if 0
-        if (!t2->parent)
-        {
-	  cout << "adding "<<sname <<" at base \n";
-	  //return t2;
-	    getMap(Kids, sname);
-	    Kids[sname]->parent = NULL;
-	    Kids[sname]->depth = 0;
-	    myt = Kids[sname];
-	}
-	else
-        {
-	    cout << "adding "<<sname <<" to [" << t2->parent->name<<"] \n";
-	    getMap(Kids, sname);
-	    t2->parent->Kids[sname]->parent = NULL;
-	    t2->parent->Kids[sname]->depth = t2->parent->depth+1;
-	    myt = t2->parent->Kids[sname];
-	}
-    }
-#endif
-    else 
-    {
-      cout << "adding Kid "<<sname <<" to [" << t2->name<<"] \n";
-        t2->getMap(Kids, sname);
-	myt = t2->Kids[sname];
-    }
-    cout << " ****myt name ["<< myt->name << "] attrs ["<<attrs<<"] size "<< attrs.size()<<"\n";
-    if(attrs.size() > 0)
-        myt->SetAttrs(attrs);
-    if(remains.size() > 0)
-      return myt<<remains;
-    else 
-        return myt;
-#endif
 }
 
 // revise the isBrother concept to mean isMe
@@ -405,7 +422,7 @@ T2* operator<<(T2*t2, const string &insrc)
 
       case '@':
 	cout <<" load lib ["<< iter->second <<"] \n";
-	myt2->addFcn(cout, iter->second);
+	//	myt2->addFcn(cout, iter->second);
 	myt2->t2_type = Types[iter->second];
 	break;
       case '!':
