@@ -65,8 +65,9 @@ void T2::jShow(ostream &os)
   //    os << "{\n";
 
     setIndent(os);
-    os<< "{\""<<name<<"\":" <<endl;
+    os<< "{\"object:\""<<name<<"\"" <<endl;
     tMap::iterator iter;
+    bool ifound = false;
     for (iter=Attrs.begin(); iter != Attrs.end(); ++iter)
       {
 	//Attrs[iter->first]->
@@ -74,6 +75,10 @@ void T2::jShow(ostream &os)
         setIndent(os, 1);
         if (iter==Attrs.begin())
 	  {
+	    ifound = true;
+	    os << " \"attributes\":{\"\n";
+	    setIndent(os);
+	    setIndent(os, 1);
 	    os << " \""<<iter->first<<"\":\"";
 	  }
 	else
@@ -82,11 +87,31 @@ void T2::jShow(ostream &os)
 	  }
 	os <<Attrs[iter->first]->value<<"\"\n";
       }
+    if ( ifound ) 
+      {
+	setIndent(os);
+        setIndent(os, 1);
+	    os << "}\n";
+      }
+    ifound = false;
+    if(t2_type != NULL) 
+      {
+	setIndent(os);
+        setIndent(os, 1);
+	os << " \"type\":\""<<t2_type->name<<"\"\n";
+	
+      }
     //os <<"\n";
     for (iter=Kids.begin(); iter != Kids.end(); ++iter)
       {
 	setIndent(os);
+
+	//        if (iter==Kids.begin())
+	//{
+	//  os << " \"kids\":[\"";
+	//}
 	Kids[iter->first]->jShow(os);
+	//}
       }
     setIndent(os);
     os << "}\n";
