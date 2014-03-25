@@ -19,18 +19,43 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <unistd.h>
-
+#include "cJSON.h"
 using namespace std;
 
 #include "T2.h"
 //#include "Socket.h"
 #include "Strings.h"
 int mainList(ostream& os, T2 *t2, void *data);
-int mainjList(ostream& os, T2 *t2, void *data);
+int mainjList(ostringstream& os, T2 *t2, void *data);
 int mainHelp(ostream& os, T2 *t2, void *data);
 
 int setup(ostream &os, T2 *t2 , void *data);
 
+char *ch_test = (char *)"{"
+"\"object\":{\"name\":\"tcps\","
+"            \"value\":\"none\""
+ ", \"attributes\":{"
+ "       \"port\":\"5566\""
+ "}"
+ ", \"kids\":{"
+  " \"object\":{\"name\":\"sys\","
+  "          \"value\":\"none\""
+  "   , \"kids\":{"
+ "      \"object\":{\"name\":\"gpios\","
+"            \"value\":\"none\""
+"         , \"kids\":{"
+"           \"object\":{\"name\":\"gpio3\","
+"            \"value\":\"none\""
+        "     , \"attributes\":{"
+       "             \"dir\":\"input\""
+      "       ,      \"pin\":\"1\""
+     "        ,      \"value\":\"on\""
+    "         }}"
+   "   }}"
+  "  }}"
+ " }}"
+"}"
+  ;
 
 tMap Kids;
 tMap Types;
@@ -246,13 +271,75 @@ int mainList(ostream& os, T2 *t2, void *data)
   return 0;
 }
 
-int mainjList(ostream& os, T2 *t2, void *data)
+int mainjList(ostringstream& os, T2 *t2, void *data)
 {
-  os << "\n";
+  stringstream ss;
+  char * chfoo;
+  os << "{\n";
+  t2->jShow(os);
+  os << "}\n";
+  string sfoo;
+  sfoo == os.str();
+
+  printf(" JSON attempt ===\n%s\n====\n", sfoo.c_str());
+
+  cJSON *cjfoo=cJSON_Parse(sfoo.c_str());
+  printf("cjfoo is (%p) \n");
+
+  if(cjfoo)
+    {
+      chfoo=cJSON_Print(cjfoo);
+      printf("chfoo is (%p) \n");
+      if(chfoo) {
+	printf("<<\n%s\n>>",chfoo);
+	free(chfoo);
+      }
+      cJSON_Delete(cjfoo);
+    }
   t2->jShow(os);
   return 0;
 }
 
+int runJsonTest(void)
+{
+  char * foo2=NULL;
+  char *ch_foo = 
+    (char *)"{"
+       " \"item\":{"
+                  "\"name\":\"anItem\","
+                  "\"value\":\"someValue\","
+                  "\"attributes\":{"
+                               "\"attr_1\":\"att1\","
+                                "\"attr2\":\"att2\""
+                  "},"
+
+
+                   "\"kids\":{"
+                             "\"item\":{"
+                                     "\"name\":\"aKid1\",\"value\":\"\""
+                             "},"
+                             "\"item\":{"
+                                       "\"name\":\"aKid2\",\"value\":\"kidValue2\""
+                              "}"
+                   "}"
+               "}"
+           "}";
+
+  cJSON *cj_foo = cJSON_Parse(ch_test);
+  printf("cj_foo %p\n", foo2);
+  if(cj_foo)
+    {
+      foo2=cJSON_Print(cj_foo);
+      
+      printf("foo2 %p\n", foo2);
+      if (foo2)
+	{
+	  printf("<<%s>>", foo2);
+	  free(foo2);
+	}
+    }
+  return 0;
+}
 
 int setup(ostream &os, T2 *t2 , void *data)
 {
@@ -280,6 +367,10 @@ int main(int argc, char *argv[])
   else if (( argc == 1 ) || ((string)argv[1] == "lib"))
   {
       runLibTest();
+  }
+  else if (( argc == 1 ) || ((string)argv[1] == "json"))
+  {
+      runJsonTest();
   }
   else if (( argc == 1 ) || ((string)argv[1] == "tcp"))
   {

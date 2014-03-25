@@ -65,53 +65,65 @@ void T2::jShow(ostream &os)
   //    os << "{\n";
 
     setIndent(os);
-    os<< "{\"object:\""<<name<<"\"" <<endl;
+    os<< "\"object\":{\"name\":\""<<name<<"\"," <<endl;
+    os<< "            \"value\":\""<<value<<"\"" <<endl;
     tMap::iterator iter;
     bool ifound = false;
-    for (iter=Attrs.begin(); iter != Attrs.end(); ++iter)
+    if(Attrs.size() > 0)
       {
-	//Attrs[iter->first]->
 	setIndent(os);
         setIndent(os, 1);
-        if (iter==Attrs.begin())
+	os << ", \"attributes\":{\n";
+	for (iter=Attrs.begin(); iter != Attrs.end(); ++iter)
 	  {
-	    ifound = true;
-	    os << " \"attributes\":{\"\n";
 	    setIndent(os);
 	    setIndent(os, 1);
-	    os << " \""<<iter->first<<"\":\"";
+	    if (iter != Attrs.begin())
+	      {
+		os << ",";
+	      }
+	    else
+	      {
+		os << " ";
+	      }
+	    //Attrs[iter->first]->
+	    os << "      \""<<iter->first<<"\":\"";
+	    
+	    os <<Attrs[iter->first]->value<<"\"";
+	    os << "\n";
 	  }
-	else
-	  {
-	    os << ",\""<<iter->first<<"\":\"";
-	  }
-	os <<Attrs[iter->first]->value<<"\"\n";
-      }
-    if ( ifound ) 
-      {
 	setIndent(os);
-        setIndent(os, 1);
-	    os << "}\n";
+	setIndent(os, 1);
+	os << "}\n";
+
       }
-    ifound = false;
     if(t2_type != NULL) 
       {
 	setIndent(os);
         setIndent(os, 1);
-	os << " \"type\":\""<<t2_type->name<<"\"\n";
+	os << ",\"type\":\""<<t2_type->name<<"\"\n";
 	
       }
-    //os <<"\n";
-    for (iter=Kids.begin(); iter != Kids.end(); ++iter)
+    if(Kids.size() >0)
       {
 	setIndent(os);
-
-	//        if (iter==Kids.begin())
-	//{
-	//  os << " \"kids\":[\"";
-	//}
-	Kids[iter->first]->jShow(os);
-	//}
+        setIndent(os, 1);
+	os << ", \"kids\":{\n";
+	for (iter=Kids.begin(); iter != Kids.end(); ++iter)
+	  {
+	    setIndent(os);
+	    if (iter != Kids.begin())
+	      {
+		os << ",";
+	      }
+	    else
+	      {
+		os << " ";
+	      }
+	    Kids[iter->first]->jShow(os);
+	  }
+	setIndent(os);
+	os << "}\n";
       }
     setIndent(os);
     os << "}\n";
