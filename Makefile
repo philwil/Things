@@ -1,4 +1,5 @@
-all: things t2 libt2gpios.so libt2tcps.so Strings
+all: things t2 libt2gpios.so libt2tcps.so Strings ostream
+
 CPP=g++
 
 Things.o: Things.cc Things.h
@@ -34,5 +35,8 @@ things: main.o Things.o Socket.o cJSON.o Strings.o
 t2:    t2_main.o T2.o Strings.o cJSON.o
 	$(CPP) -g -o $@ t2_main.o T2.o Strings.o cJSON.o -lpthread -lm -lrt -ldl
 
+ostream: ostream.cc
+	$(CPP) -g -o $@ $<
+
 clean:
-	rm -f *.o *.so things t2 Strings
+	rm -f *.o *.so things t2 Strings ostream
