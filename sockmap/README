@@ -1,0 +1,145 @@
+Another crazy idea
+
+We connect to a server ans announce our presence.
+We want to have data keys forwarded to us.
+we send data to a key and see if there is a response.
+
+The server acts as a hub and forwards messages until we get past a threshold then the server 
+sends a direct mapping to us.
+
+
+SO we open a socket to a server, simple enough.
+we send a list of registration "requests" to the server who logs then agaist our name.
+
+Each "request" or uri /foo will have a list of interested connections
+A message to /foo will be forwarded to all /foo connections.
+
+( A uri /foo has a list of sockets to send a mesage to)
+
+We have a number of connections each connection has a direct channel
+
+If one connction talks to /foo at a greater than a threshold rate then we let that connection talk to /foos direct 
+channel.
+
+
+Initial message 
+
+
+1-->0 hi I am  me.1 on on 12.34.56.78:3448  give me a direct channel
+1<--0   OK  me.1 you get 12.34.56.78:1234 (1x)
+1-->0 hi I like /foo send /foo messages to me
+1<--0 OK got it
+1-->0 hi I like /foo2 send /foo2 messages to me
+1<--0 OK got it
+
+ 
+2-->0 hi I am me.2 on 12.34.56.78:3458 give me a direct channel
+2<--0 ok me.2 you get 12.34.56.78:1235 (2x) 
+2-->0 hi I like /foo2 send /foo2 messages to me
+2<--0 OK got it
+2-->0 hi I like /foo3 send /foo3 messages to me
+2<--0 OK got it
+
+3-->0 hi I am me.3 on 12.34.56.78:3468 give me a direct channel
+3<--0 ok me.2 you get 12.34.56.78:1236  (3x)
+3-->0 hi I like /foo2 send /foo2 messages to me
+3<--0 OK got it
+3-->0 hi I like /foo4 send /foo4 messages to me
+3<--0 OK got it
+
+1-->0 send this "xxxx" to /foo4 reply /_me.1.rep
+3<--0 here is "xxxx" reply to /_foo4.rep 
+3-->0 here is a reply to /_foo4.rep
+1<--0 here is your reply
+
+
+
+1-->0 send this "xxxx" to /foo4 reply /_me.1.rep
+1<--0 here is /foo4 direct contact (3.x)
+3<--0 here is "xxxx" reply to /_me.1.rep 
+3-->0 here is a reply to /_me.1.rep
+1<--0 here is your reply
+
+1-->3x send this "yyyy" to /foo4 ( I think that's you ) reply /_me.1.rep
+1x<--3x yes I know here is a reply t0 /_me.1.rep
+
+
+So on 0 we have the following open sockets
+   each with a list of registered uri's
+
+1-->0
+   /foo
+   /foo2
+
+2-->0
+   /foo2
+   /foo3
+
+3-->0
+  /foo2
+  /foo4
+
+
+We also have a list of uris and interested destinations
+
+
+
+
+ /foo 
+    1
+
+ /foo2
+    1
+    2
+    3
+
+ /foo3
+    2
+
+/foo4
+    3
+
+
+when a message comes in on any port with a known destination then send it on to each 
+
+/foo2 
+    send to 1,2,3 
+ 
+
+
+map <string (uri), list of connections> uriMap
+
+server 
+   message coming in from any port then  send to each in the uri list
+   log data rate total bytes plus time
+   if this exceeds some value then send to port_x details of the uri list.
+   In this case send 1x,2x,3x
+
+
+   client has the option of sending to server or direct to each port back channel
+
+
+
+
+ server opens a port and listens for connections.
+ also listens for any client messages.
+
+  any accept from the main port will add a new client.
+
+  then poll main plus clients
+
+  message has a uri
+  direct message to "handler" if known
+
+  else respond with not know message
+
+  if a client subscribes to a uri then add the client to that uri list 
+
+
+
+
+
+
+   
+  
+
