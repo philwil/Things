@@ -30,12 +30,24 @@
 #include <vector>
 #include "Socket.h"
 
+#include <pthread.h>
+
+typedef struct cl_stuff 
+{
+  void * stuff;
+  void *data;
+  void * client;
+  pthread_t th;
+  int sock;
+} cl_stuff;
+
+
 using namespace std;
 #define MAXPENDING 5    /* Max connection requests */
 #define BUFFSIZE 32
 void Die(const char *msg) { perror(msg); exit(1); }
     
-int socketServer(int port, void (*HandleClient)(int sock, void *data, struct sockaddr_in *client), 
+int socketServer(int port, void (*HandleClient)(int sock, void *data, void *client), 
 		void *data) 
 {
   int sock, clientsock;
@@ -87,7 +99,8 @@ int socketServer(int port, void (*HandleClient)(int sock, void *data, struct soc
     //    fprintf(stdout, "Client connected: %s\n",
     //	    inet_ntoa(client->sin_addr));
     /* hand over operation to the client call back */
-    HandleClient(clientsock, data, client);
+    //create a thread to run this client
+    HandleClient(clientsock, data, (void *)client);
   }
   return sock;
 }
@@ -138,27 +151,53 @@ int ConnectServer(int port, void *ipname)
 }
 
 
+void *client_function(void *data);
+
 // dummy for testing
-void HandleClient(int sock, void *data, void * client) {
+void HandleClient(int sock, void *data, void *client) 
+{
+  cl_stuff * cl;
+  //pthread_attr *attr = NULL;
+  cl = new cl_stuff;
+  cl->client = client;
+  cl->data = data;
+  cl->sock = sock;
+  pthread_create (&cl->th, NULL, client_function, (void *)cl);
+  return;
+}  
+
+void *client_function( void *data)
+{
+  cl_stuff * cl = (cl_stuff *)data;
+ 
+  
   char buffer[BUFFSIZE];
   int received = -1;
+  /* send greeting */
+  sprintf(buffer, " Hi you are a client=>");
+  send(cl->sock, buffer, strlen(buffer), 0);
+
   /* Receive message */
-  if ((received = recv(sock, buffer, BUFFSIZE, 0)) < 0) {
+
+  if ((received = recv(cl->sock, buffer, BUFFSIZE, 0)) < 0) {
     Die("Failed to receive initial bytes from client");
   }
+
   /* Send bytes and check for more incoming data in loop */
   while (received > 0) {
     /* Send back received data */
-    if (send(sock, buffer, received, 0) != received) {
+    if (send(cl->sock, buffer, received, 0) != received) {
       Die("Failed to send bytes to client");
     }
     /* Check for more data */
-    if ((received = recv(sock, buffer, BUFFSIZE, 0)) < 0) {
+    if ((received = recv(cl->sock, buffer, BUFFSIZE, 0)) < 0) {
       Die("Failed to receive additional bytes from client");
     }
   }
-  close(sock);
+  close(cl->sock);
+  pthread_exit(0);
 }
+
 
 // used from C++ code
 int SendClient(int sock, string msg)
